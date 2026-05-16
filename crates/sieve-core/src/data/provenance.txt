@@ -2,15 +2,34 @@
 # Provenance manifest for jailbreaks.txt.
 #
 # Each block records the source of a batch of patterns, the license under
-# which we redistribute them, and the date imported. v0.1 ships a small
-# hand-curated set; Phase 14 will fill this manifest out with upstream
-# attribution batches.
+# which we redistribute them, and the date imported.
 
 [batch:initial-curated]
 date: 2026-05-16
 license: MIT
-source: hand-curated by maintainers, drawn from public bug reports and
-        academic literature (arXiv 2504.11168; JailbreakBench public set).
-notes: Seed corpus of ~70 entries. Designed for low false-positive rate
-       on benign English while catching the most common jailbreak phrasings.
-       Audited line-by-line.
+source: hand-curated by maintainers
+notes: Seed corpus of ~70 entries (Phase 3). Designed for low FPR on benign
+       English while catching the most common jailbreak phrasings.
+
+[batch:phase14-extension]
+date: 2026-05-16
+license: MIT
+source: hand-curated by maintainers, drawn from public ACL'25 paper samples,
+        JailbreakBench public reference set (categories only, not verbatim),
+        and prompt-injection bug reports from public bug-bounty disclosures.
+notes: Extends to ~220 entries across 6 categories:
+       direct override, roleplay/persona, DAN/jailbreak names, system-prompt
+       exfiltration, privilege escalation, format/control-token smuggling,
+       output-policy stripping, refusal-bait phrases.
+
+[batch:planned-v0.2-external-merge]
+status: deferred-to-v0.2
+sources:
+  - JailbreakBench (MIT)
+  - garak probes (Apache-2.0)
+  - LLM Guard wordlist (MIT, attribution required)
+  - Rebuff vector DB corpus (Apache-2.0, attribution required)
+target_size: ~5,000 patterns, <500KB total
+notes: External merge happens in the separate `sieve-corpus` repo (planned
+       for v0.2). Each upstream batch will have its own provenance entry
+       with the import commit SHA + license.

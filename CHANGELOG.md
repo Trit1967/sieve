@@ -61,6 +61,16 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 14: Wordlist expanded from ~70 to ~220 hand-curated patterns
+  across 8 attack families. Removed FPR-prone single-token control
+  patterns (`</system>`, `[INST]`, `###user`, etc.) — they normalize
+  to plain English words; v0.2 adds a raw-bytes scanner pass for them.
+  Added 108-line curated benign FPR corpus (`benign.txt`) with
+  adversarial-looking-but-legitimate prompts (AI talk, RAG queries,
+  prompt-engineering questions). New `tests/corpus.rs` asserts
+  detection rate ≥95% on jailbreaks and 0% block-FPR + ≤10% flag-FPR
+  on benigns. Provenance manifest extended with the Phase 14 batch +
+  planned v0.2 external-merge entry.
 - Phase 13: `@sieve/nextjs` TypeScript package — three sub-exports:
   `@sieve/nextjs` (root) ships `sieveCheck()` for stateless Edge
   middleware + `Verdict` / `Finding` / `CanaryState` types +

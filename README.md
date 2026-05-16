@@ -7,12 +7,12 @@
 Strings in. Verdicts out. No network calls. No LLM-vendor lock-in. No telemetry. Ever.
 
 ```rust
-use sieve::Scanner;
+use sieve_core::{Scanner, Decision};
 
 let scanner = Scanner::default();
 let verdict = scanner.scan_input(&system_prompt, &user_input);
 
-if verdict.is_block() {
+if verdict.decision == Decision::Block {
     return Err("prompt injection blocked");
 }
 ```
@@ -91,11 +91,11 @@ scanner = sieve.Scanner()
 
 pre = scanner.scan_input(system_prompt, user_input)
 if pre.is_block():
-    raise InjectionBlocked()
+    raise sieve.PromptInjectionBlocked(pre)
 
 response = your_llm_call()    # Ollama / OpenAI / Anthropic / custom — doesn't matter
 
-post = scanner.scan_output(response, pre.canary_state)
+post = scanner.scan_output(system_prompt, response, pre.canary_state)
 print(post.decision, post.findings)
 ```
 
@@ -104,11 +104,11 @@ import init, { Scanner } from '@sieve/wasm';
 await init();
 
 const scanner = new Scanner();
-const pre = scanner.scan_input(systemPrompt, userInput);
+const pre = scanner.scanInput(systemPrompt, userInput);
 if (pre.decision === 'Block') return new Response('blocked', { status: 400 });
 
 const response = await yourLlmCall();
-const post = scanner.scan_output(response, pre.canary_state);
+const post = scanner.scanOutput(systemPrompt, response, pre.canary_state);
 ```
 
 ## Optional contrib helpers

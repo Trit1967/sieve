@@ -30,10 +30,12 @@
 #![warn(clippy::pedantic, missing_docs, rust_2018_idioms)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod canary;
 pub mod detectors;
 pub mod error;
 pub mod verdict;
 
+pub use canary::{detect_leaks, inject_system_prompt, Canary};
 pub use detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
     PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,

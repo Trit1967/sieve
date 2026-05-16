@@ -48,3 +48,9 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   repetition entropy (Shannon entropy of lowercased alpha chars, only
   runs on inputs ≥200 chars). Each scorer emits at most one Finding
   per scan. 3 property tests (scores in [0,1], never-panic, deterministic).
+- Phase 6: `CanaryEngine` — 16-byte CSPRNG random tokens (URL-safe base64
+  no-pad → 22 ASCII chars, per ADR-0005). `Canary::new()` + `from_token()`,
+  `inject_system_prompt()` returns (instrumented prompt, CanaryState),
+  `detect_leaks(output, &state)` returns verbatim + fuzzy CanaryLeaks.
+  1000-canary uniqueness sanity + 3 property tests (never-panic,
+  no-false-positive-when-absent, verbatim-substring-always-detected).

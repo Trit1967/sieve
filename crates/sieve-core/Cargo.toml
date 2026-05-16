@@ -18,9 +18,14 @@ name = "sieve_core"
 path = "src/lib.rs"
 
 [dependencies]
-# Phase 0 scaffold: zero runtime dependencies. Detector deps (aho-corasick,
-# unicode-normalization, regex, serde, etc.) are introduced in the phases that
-# need them (P1 for serde, P2 for unicode-normalization, ...).
+# Phase 1 introduces serde for the Verdict schema (JSON round-trip is a
+# cross-language stability requirement). thiserror gives us idiomatic error
+# types with zero runtime cost. Detector deps (aho-corasick,
+# unicode-normalization, regex, getrandom, base64) are added in the phases
+# that introduce them (P2..P6).
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [features]
 default = []

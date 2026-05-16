@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 [package]
 name = "sieve-wasm"
-description = "WASM bindings for sieve (wasm-bindgen)"
+description = "WebAssembly bindings for sieve (wasm-bindgen)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -18,7 +18,14 @@ path = "src/lib.rs"
 
 [dependencies]
 sieve-core = { path = "../sieve-core", version = "0.1.0-dev" }
-# wasm-bindgen wired up in Phase 12.
+wasm-bindgen = "0.2"
+serde-wasm-bindgen = "0.6"
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [features]
 default = []
+
+# Size budget for the compressed wasm bundle is enforced in CI.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz"]

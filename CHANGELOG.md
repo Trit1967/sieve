@@ -61,6 +61,14 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 12: WASM binding via wasm-bindgen (`@sieve/wasm`).
+  `new Scanner()` + `scanner.scanInput(system, user)` +
+  `scanner.scanOutput(system, output, canaryState)`. Returns plain JS
+  objects via `serde_wasm_bindgen` matching the canonical Verdict
+  schema. CanaryState accepts either an object or its JSON string
+  (handy for Edge runtimes that flatten worker boundaries). Release
+  profile uses `opt-level=z` + `lto=thin` + `wasm-opt -Oz` for the 2MB
+  budget (ADR-0004).
 - Phase 11: Python bindings via pyo3 + maturin. `sieve._native`
   exposes `Scanner`, `Verdict`, `Finding`, `CanaryState`, `CanaryLeak`,
   `CommitmentViolation`. Pure-Python layer in `sieve/__init__.py` adds

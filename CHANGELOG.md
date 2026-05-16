@@ -61,6 +61,15 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 11: Python bindings via pyo3 + maturin. `sieve._native`
+  exposes `Scanner`, `Verdict`, `Finding`, `CanaryState`, `CanaryLeak`,
+  `CommitmentViolation`. Pure-Python layer in `sieve/__init__.py` adds
+  `PromptInjectionBlocked` exception. Contrib wrappers:
+  `sieve.contrib.openai.wrap(client)` and
+  `sieve.contrib.anthropic.wrap(client)` monkey-patch the SDK to scan
+  in/out automatically. Type stubs in `_native.pyi`. pytest smoke tests
+  in `python/sieve/tests/`. Uses pyo3 abi3-py39 for a single wheel
+  across Python 3.9..3.13.
 - Phase 10: Scanner orchestrator (`sieve_core::scanner`). `Scanner` +
   `ScannerBuilder` wire together all 8 v0.1 detectors:
   Unicode → Pattern → Encoding → Heuristic → Context → Classifier →

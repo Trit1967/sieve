@@ -12,14 +12,16 @@ homepage.workspace = true
 readme.workspace = true
 
 [lib]
+# The actual Python module is named `_native` and bundled inside the
+# `sieve` Python package (see pyproject.toml `module-name`).
 name = "sieve_native"
 crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
 [dependencies]
 sieve-core = { path = "../sieve-core", version = "0.1.0-dev" }
-# pyo3 is added in Phase 11. Keeping the stub crate buildable as plain Rust for
-# Phase 0 — `maturin develop` will be wired up when we add the binding.
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py39"] }
+serde_json = { workspace = true }
 
 [features]
 default = []

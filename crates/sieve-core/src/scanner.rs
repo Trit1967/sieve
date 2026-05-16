@@ -36,7 +36,7 @@ use crate::commitments::{extract_commitments, verify_commitments, Commitment};
 use crate::context::{ContextAnalyzer, ContextOpts, SystemPrompt};
 use crate::detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, PatternOpts, PatternScanner,
-    SemanticOpts, SemanticScorer, UnicodeNormalizer, UnicodeOpts,
+    SemanticOpts, SemanticScorer, SlotMatcher, SlotOpts, UnicodeNormalizer, UnicodeOpts,
 };
 use crate::error::Result;
 use crate::judge::{LlmJudge, NoopJudge};
@@ -58,6 +58,7 @@ struct Inner {
     encoding: Option<EncodingScanner>,
     heuristics: HeuristicScorer,
     semantic: SemanticScorer,
+    slot: SlotMatcher,
     context: ContextAnalyzer,
     classifier: Box<dyn Classifier>,
     judge: Box<dyn LlmJudge>,
@@ -115,6 +116,7 @@ impl Scanner {
         }
         findings.extend(self.inner.heuristics.scan(&normalized));
         findings.extend(self.inner.semantic.scan(&normalized));
+        findings.extend(self.inner.slot.scan(&normalized));
 
         // 7. Context analyzer (system-prompt aware).
         findings.extend(self.inner.context.analyze(&sp, &normalized));
@@ -257,6 +259,7 @@ impl Scanner {
                 encoding: None,
                 heuristics: HeuristicScorer::default(),
                 semantic: SemanticScorer::default(),
+                slot: SlotMatcher::default(),
                 context: ContextAnalyzer::default(),
                 classifier: Box::new(NoopClassifier),
                 judge: Box::new(NoopJudge),
@@ -275,10 +278,12 @@ pub struct ScannerBuilder {
     encoding_opts: EncodingOpts,
     heuristic_opts: HeuristicOpts,
     semantic_opts: SemanticOpts,
+    slot_opts: SlotOpts,
     context_opts: ContextOpts,
     enable_patterns: bool,
     enable_encoding: bool,
     enable_semantic: bool,
+    enable_slot: bool,
     enable_canary: bool,
     judge_consult_threshold: f32,
     classifier: Option<Box<dyn Classifier>>,
@@ -296,10 +301,12 @@ impl ScannerBuilder {
             encoding_opts: EncodingOpts::default(),
             heuristic_opts: HeuristicOpts::default(),
             semantic_opts: SemanticOpts::default(),
+            slot_opts: SlotOpts::default(),
             context_opts: ContextOpts::default(),
             enable_patterns: true,
             enable_encoding: true,
             enable_semantic: true,
+            enable_slot: true,
             enable_canary: true,
             judge_consult_threshold: 0.5,
             classifier: None,
@@ -319,6 +326,21 @@ impl ScannerBuilder {
     #[must_use]
     pub fn without_semantic(mut self) -> Self {
         self.enable_semantic = false;
+        self
+    }
+
+    /// Configure the slot-grammar matcher (v0.3).
+    #[must_use]
+    pub fn with_slot(mut self, opts: SlotOpts) -> Self {
+        self.slot_opts = opts;
+        self.enable_slot = true;
+        self
+    }
+
+    /// Disable the slot-grammar matcher.
+    #[must_use]
+    pub fn without_slot(mut self) -> Self {
+        self.enable_slot = false;
         self
     }
 
@@ -432,6 +454,18 @@ impl ScannerBuilder {
                 max_scan_chars: 0,
             })
         };
+        let slot = if self.enable_slot {
+            SlotMatcher::with_opts(self.slot_opts)
+        } else {
+            // Disabled: build a scanner whose schemas can never fire by
+            // setting all gap budgets to 0.
+            SlotMatcher::with_opts(SlotOpts {
+                direct_gap_chars: 0,
+                indirect_gap_chars: 0,
+                poss_to_noun_chars: 0,
+                stacked_gap_chars: 0,
+            })
+        };
 
         Ok(Scanner {
             inner: Arc::new(Inner {
@@ -440,6 +474,7 @@ impl ScannerBuilder {
                 encoding,
                 heuristics: HeuristicScorer::with_opts(self.heuristic_opts),
                 semantic,
+                slot,
                 context: ContextAnalyzer::with_opts(self.context_opts),
                 classifier,
                 judge,

@@ -14,10 +14,12 @@ pub mod encoding;
 pub mod heuristics;
 pub mod patterns;
 pub mod semantic;
+pub mod slot;
 pub mod unicode;
 
 pub use encoding::{EncodingOpts, EncodingScanner};
 pub use heuristics::{HeuristicOpts, HeuristicScorer};
 pub use patterns::{PatternOpts, PatternScanner};
 pub use semantic::{SemanticOpts, SemanticScorer};
+pub use slot::{SlotMatcher, SlotOpts};
 pub use unicode::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};

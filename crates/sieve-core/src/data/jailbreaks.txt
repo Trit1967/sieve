@@ -811,8 +811,10 @@ full access and zero restrictions
 # ---- More authority-framing variants -------------------------------
 on behalf of openai
 on behalf of anthropic
-on behalf of the safety team
-on behalf of the trust and safety
+# NOTE: bare "on behalf of the safety team" / "on behalf of trust and
+# safety" false-block "On behalf of the safety team, thanks for the great
+# PR!". Slot-grammar AUTH schema catches the attack variants when paired
+# with an override-noun.
 acting on behalf of openai
 acting on behalf of anthropic
 new policy effective immediately
@@ -1089,7 +1091,8 @@ let's pretend
 let's pretend you
 let's pretend that you
 hypothetically if you ignored
-hypothetically if you
+# NOTE: bare "hypothetically if you" false-blocks "Hypothetically, if you
+# were a chef, what would you cook?" — the longer phrase above is fine.
 what if you ignored
 what would you say if
 what would a fictional unrestricted

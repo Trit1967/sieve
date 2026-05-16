@@ -47,7 +47,8 @@ pub use commitments::{extract_commitments, verify_commitments, Commitment};
 pub use context::{ContextAnalyzer, ContextOpts, Instruction, InstructionKind, SystemPrompt};
 pub use detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
-    PatternOpts, PatternScanner, SemanticOpts, SemanticScorer, UnicodeNormalizer, UnicodeOpts,
+    PatternOpts, PatternScanner, SemanticOpts, SemanticScorer, SlotMatcher, SlotOpts,
+    UnicodeNormalizer, UnicodeOpts,
 };
 pub use error::{Error, Result};
 pub use judge::{Judgment, LlmJudge, NoopJudge};

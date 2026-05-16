@@ -17,10 +17,18 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "[bench] building sieve-bench (release)"
-cargo build --release --bin sieve-bench --manifest-path benchmarks/harness/Cargo.toml
+# Workspace builds share a target/ dir at the workspace root regardless
+# of --manifest-path, so the binary lands at ./target/release/sieve-bench
+# (or .exe on Windows). Resolve both.
+cargo build --release -p sieve-bench
+
+BIN="./target/release/sieve-bench"
+if [ ! -x "$BIN" ] && [ -x "${BIN}.exe" ]; then
+  BIN="${BIN}.exe"
+fi
 
 echo "[bench] running bundled corpus (jailbreaks.txt + benign.txt)"
-./benchmarks/harness/target/release/sieve-bench \
+"$BIN" \
   --jailbreaks crates/sieve-core/src/data/jailbreaks.txt \
   --benign    crates/sieve-core/src/data/benign.txt \
   --output    benchmarks/REPORT.md \

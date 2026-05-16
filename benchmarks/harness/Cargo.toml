@@ -11,4 +11,5 @@ name = "sieve-bench"
 path = "src/main.rs"
 
 [dependencies]
-sieve-core = { path = "../../crates/sieve-core" }
+# version pin satisfies cargo-deny's `wildcards = "deny"` rule.
+sieve-core = { path = "../../crates/sieve-core", version = "0.1.0" }

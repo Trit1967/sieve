@@ -8,31 +8,42 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     },
     "./openai": {
+      "types": "./dist/openai.d.ts",
       "import": "./dist/openai.mjs",
-      "require": "./dist/openai.js",
-      "types": "./dist/openai.d.ts"
+      "require": "./dist/openai.cjs"
     },
     "./ai-sdk": {
+      "types": "./dist/ai-sdk.d.ts",
       "import": "./dist/ai-sdk.mjs",
-      "require": "./dist/ai-sdk.js",
-      "types": "./dist/ai-sdk.d.ts"
+      "require": "./dist/ai-sdk.cjs"
     }
   },
   "files": ["dist", "README.md"],
   "keywords": ["prompt-injection", "llm", "security", "ai-safety", "nextjs", "edge-runtime", "vercel"],
   "scripts": {
-    "build": "echo 'Phase 13 implements the real build (tsup)'",
-    "test": "echo 'Phase 13 implements the real test suite (vitest)'"
+    "build": "tsup src/index.ts src/openai.ts src/ai-sdk.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "@sieve/wasm": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@sieve/wasm": { "optional": false }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
   },
   "engines": { "node": ">=20" }
 }

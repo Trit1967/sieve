@@ -61,6 +61,14 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 13: `@sieve/nextjs` TypeScript package — three sub-exports:
+  `@sieve/nextjs` (root) ships `sieveCheck()` for stateless Edge
+  middleware + `Verdict` / `Finding` / `CanaryState` types +
+  `PromptInjectionBlocked` error class; `@sieve/nextjs/openai` ships
+  `wrapOpenAI(client)`; `@sieve/nextjs/ai-sdk` ships
+  `sieveMiddleware(model)` that plugs into the Vercel AI SDK v3.x
+  `LanguageModelV1` shape. Vitest smoke suite mocks `@sieve/wasm` and
+  covers benign + block paths through the OpenAI wrapper.
 - Phase 12: WASM binding via wasm-bindgen (`@sieve/wasm`).
   `new Scanner()` + `scanner.scanInput(system, user)` +
   `scanner.scanOutput(system, output, canaryState)`. Returns plain JS

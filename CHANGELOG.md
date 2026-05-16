@@ -54,3 +54,10 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   `detect_leaks(output, &state)` returns verbatim + fuzzy CanaryLeaks.
   1000-canary uniqueness sanity + 3 property tests (never-panic,
   no-false-positive-when-absent, verbatim-substring-always-detected).
+- Phase 7: Heuristic context analyzer (`sieve_core::context`). Parses a
+  system prompt into atomic `Instruction`s tagged Prohibition/Persona/
+  Imperative/Descriptive with extracted content keywords. The
+  `ContextAnalyzer` maps user input to instructions it tries to override
+  via keyword overlap + override-phrase detection; explicit override
+  phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
+  fire at Severity::Block, others at Warn. 2 property tests.

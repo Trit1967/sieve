@@ -31,11 +31,13 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod canary;
+pub mod context;
 pub mod detectors;
 pub mod error;
 pub mod verdict;
 
 pub use canary::{detect_leaks, inject_system_prompt, Canary};
+pub use context::{ContextAnalyzer, ContextOpts, Instruction, InstructionKind, SystemPrompt};
 pub use detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
     PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,

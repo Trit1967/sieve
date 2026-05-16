@@ -18,10 +18,10 @@ jobs:
       - name: Run bundled-corpus benchmark
         run: bash benchmarks/run.sh
       - name: Run criterion benches
-        # --benches skips the auto-generated lib test harness (which
-        # doesn't understand --sample-size). --sample-size 10 keeps
-        # the criterion run under a few minutes for CI.
-        run: cargo bench -p sieve-core --no-fail-fast --benches -- --sample-size 10
+        # Target the `scan` bench specifically (vs --benches, which still
+        # runs the lib unittest harness which doesn't understand
+        # --sample-size). --sample-size 10 keeps each measurement fast.
+        run: cargo bench -p sieve-core --bench scan -- --sample-size 10
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:

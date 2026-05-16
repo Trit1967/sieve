@@ -20,6 +20,6 @@
       "@sieve/wasm": ["./node_modules/@sieve/wasm"]
     }
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "types/**/*"],
   "exclude": ["node_modules", "dist"]
 }

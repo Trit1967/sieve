@@ -35,8 +35,8 @@ pub mod error;
 pub mod verdict;
 
 pub use detectors::{
-    EncodingOpts, EncodingScanner, NormalizationResult, PatternOpts, PatternScanner,
-    UnicodeNormalizer, UnicodeOpts,
+    EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
+    PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,
 };
 pub use error::{Error, Result};
 pub use verdict::{

@@ -41,3 +41,10 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   intentionally out of scope (DoS surface). 1MB pathological-input
   latency bound (<500ms). 3 property tests (never-panic, deterministic,
   bounded-latency).
+- Phase 5: `HeuristicScorer` — three cheap statistical signals:
+  instruction-density (override-verb hits per 100 chars), script-switch
+  (distinct Unicode scripts in one input, with Han/Hiragana/Katakana/
+  Hangul/Cyrillic/Greek/Arabic/Hebrew/Devanagari/Latin/Common buckets),
+  repetition entropy (Shannon entropy of lowercased alpha chars, only
+  runs on inputs ≥200 chars). Each scorer emits at most one Finding
+  per scan. 3 property tests (scores in [0,1], never-panic, deterministic).

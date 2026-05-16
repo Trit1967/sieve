@@ -11,9 +11,11 @@
 //! - Phase 5: `HeuristicScorer` (instruction density, script-switch, entropy).
 
 pub mod encoding;
+pub mod heuristics;
 pub mod patterns;
 pub mod unicode;
 
 pub use encoding::{EncodingOpts, EncodingScanner};
+pub use heuristics::{HeuristicOpts, HeuristicScorer};
 pub use patterns::{PatternOpts, PatternScanner};
 pub use unicode::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};

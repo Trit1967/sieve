@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+[package]
+name = "sieve-core"
+description = "Vendor-neutral, embeddable, offline-first prompt injection defense library (core)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+name = "sieve_core"
+path = "src/lib.rs"
+
+[dependencies]
+# Phase 0 scaffold: zero runtime dependencies. Detector deps (aho-corasick,
+# unicode-normalization, regex, serde, etc.) are introduced in the phases that
+# need them (P1 for serde, P2 for unicode-normalization, ...).
+
+[features]
+default = []
+# BYO-ONNX classifier interface backed by the `ort` crate (Phase 9). Users opt
+# in and supply their own model file at runtime — no weights are bundled.
+onnx = []
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "scan"
+harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

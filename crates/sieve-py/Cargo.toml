@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+[package]
+name = "sieve-py"
+description = "Python bindings for sieve (pyo3 / maturin)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+[lib]
+name = "sieve_native"
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+sieve-core = { path = "../sieve-core", version = "0.1.0-dev" }
+# pyo3 is added in Phase 11. Keeping the stub crate buildable as plain Rust for
+# Phase 0 — `maturin develop` will be wired up when we add the binding.
+
+[features]
+default = []

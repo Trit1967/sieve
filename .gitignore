@@ -1,0 +1,57 @@
+# Rust
+/target
+/crates/*/target
+**/*.rs.bk
+Cargo.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+.python-version
+*.so
+*.pyd
+
+# Node
+node_modules/
+dist/
+.next/
+*.log
+.turbo/
+
+# WASM
+crates/sieve-wasm/pkg/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Benchmark/profile artifacts
+benchmarks/results/*.json
+benchmarks/results/*.html
+flamegraph.svg
+perf.data*
+
+# Coverage
+*.profraw
+*.profdata
+tarpaulin-report.html
+lcov.info
+
+# Fuzz
+crates/sieve-core/fuzz/target/
+crates/sieve-core/fuzz/corpus/
+crates/sieve-core/fuzz/artifacts/
+
+# Generated docs
+target/doc/
+docs/book/
+
+# Local secrets (never store)
+.env
+.env.*
+secrets/

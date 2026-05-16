@@ -61,3 +61,11 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 8: Deterministic commitment extraction + verification
+  (`sieve_core::commitments`). Three commitment families: Language
+  (canonicalized over 9 top languages), Persona (excludes filler
+  descriptors like "helpful assistant"), RefusalKeyword (forbidden
+  phrase). Verification uses lightweight script + stopword-frequency
+  language detection (English/Spanish/French/German/CJK/Korean), persona
+  self-identification ("I am X", "my name is X"), and substring scan
+  for refusal phrases. Emits `CommitmentViolation` per failure.

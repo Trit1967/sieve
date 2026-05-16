@@ -30,9 +30,11 @@
 #![warn(clippy::pedantic, missing_docs, rust_2018_idioms)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod detectors;
 pub mod error;
 pub mod verdict;
 
+pub use detectors::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};
 pub use error::{Error, Result};
 pub use verdict::{
     CanaryLeak, CanaryState, Category, CommitmentViolation, Decision, Finding, Severity, Verdict,

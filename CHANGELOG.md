@@ -20,3 +20,11 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   surface (ADR-0010). Property tests verify round-trip at 1024 cases per type.
 - Phase 1: `Error` enum with `PatternLoad` / `Config` / `Serde` / `Io`
   variants. `#[non_exhaustive]` so additions are non-breaking.
+- Phase 2: `UnicodeNormalizer` detector — the hero feature.
+  - Strips Unicode tag codepoints (U+E0000..=U+E007F) — the ACL'25
+    100%-evasion attack class.
+  - Strips zero-width chars (U+200B/C/D, U+FEFF, U+2060).
+  - Applies NFKC compatibility composition (folds full-width Latin,
+    math alphanumerics, ligatures).
+  - Maps a curated Latin/Cyrillic/Greek homoglyph subset to ASCII
+    (ADR-0007). 6 property tests at 1024 cases each.

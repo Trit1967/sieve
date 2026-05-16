@@ -260,7 +260,7 @@ impl Verdict {
     }
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let s = self.to_json()?;
-        let json_mod = py.import_bound("json")?;
+        let json_mod = py.import("json")?;
         let obj = json_mod.call_method1("loads", (s,))?;
         obj.extract()
     }

@@ -142,13 +142,28 @@ jobs:
       - name: Build wheel
         working-directory: crates/sieve-py
         run: maturin build --release
+      - name: Create virtualenv
+        # maturin develop requires a venv. Cross-platform setup via venv
+        # + activation file pinned to GITHUB_ENV / GITHUB_PATH.
+        shell: bash
+        run: |
+          python -m venv .venv
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "VIRTUAL_ENV=$(pwd)/.venv" >> "$GITHUB_ENV"
+            echo "$(pwd)/.venv/Scripts" >> "$GITHUB_PATH"
+          else
+            echo "VIRTUAL_ENV=$(pwd)/.venv" >> "$GITHUB_ENV"
+            echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
+          fi
       - name: Install pytest
         run: pip install pytest
       - name: maturin develop
         working-directory: crates/sieve-py
+        shell: bash
         run: maturin develop --release
       - name: Run pytest
         working-directory: crates/sieve-py
+        shell: bash
         run: pytest python/sieve/tests/ -q
 
   nextjs-build:

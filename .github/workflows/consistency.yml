@@ -29,10 +29,16 @@ jobs:
         run: cargo build --release -p sieve-bench
 
       - name: Build + install Python wheel
+        # maturin develop requires a virtualenv. Create one + activate.
         run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
           pip install maturin pytest
           cd crates/sieve-py
           maturin develop --release
+          # Persist the venv path for the next step.
+          echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Build WASM bundle (nodejs target)
         run: wasm-pack build crates/sieve-wasm --release --target nodejs

@@ -34,5 +34,8 @@ getrandom = { workspace = true, features = ["js"] }
 default = []
 
 # Size budget for the compressed wasm bundle is enforced in CI.
+# Rust 1.95+ emits bulk-memory ops by default, so wasm-opt has to be told
+# to accept them (otherwise it bails with "Bulk memory operations require
+# bulk memory [--enable-bulk-memory]").
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-Oz"]
+wasm-opt = ["-Oz", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"]

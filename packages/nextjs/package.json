@@ -1,6 +1,6 @@
 {
   "name": "@sieve/nextjs",
-  "version": "0.1.0-dev",
+  "version": "0.1.0-rc1",
   "description": "Next.js + Vercel AI SDK helpers for sieve (vendor-neutral prompt injection defense)",
   "license": "(MIT OR Apache-2.0)",
   "repository": { "type": "git", "url": "git+https://github.com/Trit1967/sieve.git" },

@@ -6,7 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 with the pre-1.0 caveat: minor version bumps may include breaking changes until v1.0.
 
-## [Unreleased]
+## [0.1.0-rc1] - 2026-05-16
+
+First public release candidate of `sieve`. Covers Phases 0-17 of the
+build plan in `IMPLEMENTATION_PROMPT.md`.
+
+**Headline numbers** (`benchmarks/REPORT.md`):
+- Jailbreak corpus (224 curated): 100.0% Block.
+- Benign FPR corpus (108 lines): 0.0% Block, 0.0% Flag.
+- Per-scan latency: p50 7µs, p99 18µs.
+- Cited competitors (different test sets, take with salt): Lakera
+  74.6%, Azure Prompt Shield 42.98% (arXiv 2505.13028).
+
+**Tested on**: x86_64-pc-windows-msvc (148 unit + 2 corpus tests + 6
+proptest groups, all green). CI matrix in `.github/workflows/ci.yml`
+adds Linux + macOS + WASM.
+
+**Inviolable rules verified**:
+- R1: no network deps in sieve-core (CI audit).
+- R2: no LLM-vendor deps in sieve-core (CI audit).
+- R3: string-in / verdict-out API.
+- R4: contrib wrappers in separate subpackages only.
+- R5: zero telemetry.
+- R6: dual MIT + Apache-2.0.
+- R7: clippy-gated no-panic in production paths.
+- R8: cross-language consistency CI workflow.
+- R9: README leads with "what we don't catch".
+- R10: no emojis in code or docs (audited).
+- R11: no bundled ONNX weights.
+- R12: sync core, async only in contrib middleware.
+
+### Added
 
 ### Added
 - Cargo workspace scaffold with `sieve-core`, `sieve-py`, `sieve-wasm` crates.

@@ -5,7 +5,7 @@ build-backend = "maturin"
 
 [project]
 name = "sieve"
-version = "0.1.0-dev"
+version = "0.1.0rc1"
 description = "Vendor-neutral, offline-first prompt injection defense library"
 readme = "../../README.md"
 requires-python = ">=3.9"

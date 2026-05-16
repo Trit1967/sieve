@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+[book]
+title = "sieve user guide"
+authors = ["The sieve contributors"]
+description = "Vendor-neutral, embeddable, offline-first prompt injection defense."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/Trit1967/sieve"
+edit-url-template = "https://github.com/Trit1967/sieve/edit/main/docs/{path}"

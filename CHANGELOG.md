@@ -61,6 +61,16 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 16: Five working examples + 14-page mdbook user guide.
+  - `examples/rust-basic` runs all 4 scanner-side cases.
+  - `examples/python-fastapi` (FastAPI + sieve.contrib.openai).
+  - `examples/python-langchain` (raw scanner API with LangChain).
+  - `examples/nextjs-vercel-ai` (Vercel AI SDK + sieveMiddleware).
+  - `examples/nextjs-edge-runtime` (Edge middleware with sieveCheck).
+  - `docs/` mdbook scaffold with introduction, scope ("what we don't
+    catch"), install, three quickstarts, public API ref, verdict /
+    canary / commitments concept pages, BYO classifier, configuration,
+    security, adding patterns, architecture.
 - Phase 15: Reproducible benchmark harness. `benchmarks/run.sh` builds
   the `sieve-bench` binary (under `benchmarks/harness/`) and writes
   `benchmarks/REPORT.md`. Bundled-corpus baseline: 100% detection on

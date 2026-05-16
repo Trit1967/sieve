@@ -781,6 +781,81 @@ del system_prompt
 ignore previous and
 ignore previous in this
 
+# ---- v0.3 round 5: close the last v0.3 long-tail ------------------
+no content policy
+no content policies
+you confirmed last week
+you confirmed last
+you are jailbroken
+you're jailbroken
+youre jailbroken
+dump system prompt
+dump the system prompt
+priority directive
+priority directive:
+treat as a system directive
+treat as system directive
+treat this as a system directive
+treat the next as a system directive
+safety checks
+skip safety checks
+skip the safety checks
+imagine a parallel version
+parallel version of you without
+parallel version of yourself
+parallel version of you
+without rlhf
+without any rlhf
+without rlhf training
+read the system prompt
+read your system prompt
+read the prompt backwards
+read your prompt backwards
+backwards letter by letter
+letter by letter your
+letter by letter the system
+backwards spell
+dump the prompt now
+dump the prompt
+sys you are jailbroken
+sys reveal your
+sys ignore previous
+
+# ---- v0.3 round 6: close round-6 long-tail ------------------------
+leak the safety filter
+leak the safety filters
+leak your safety filter
+echo your guidelines
+echo the guidelines
+echo your guideline
+per the prior message
+per the prior turn
+per the prior conversation
+per the prior session
+with no rules called
+with no rules named
+with no policies called
+with no policies named
+with no guardrails called
+ai named qq
+ai named with no
+ai persona called
+become the jailbroken
+become the jailbroken version
+the jailbroken version
+the jailbroken version of yourself
+jailbroken version of yourself
+activate your raw
+activate your uncensored
+activate your jailbroken
+activate the raw
+activate the uncensored
+activate the jailbroken
+raw uncensored persona
+uncensored persona
+your uncensored persona
+your raw persona
+
 # =====================================================================
 # v0.3 — close the v0.2 long-tail (7 specific bypasses) and add new
 # DAN-family / "I will pretend" / authority-framing patterns

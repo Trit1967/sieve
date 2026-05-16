@@ -35,8 +35,10 @@ use crate::classifier::{Classifier, NoopClassifier};
 use crate::commitments::{extract_commitments, verify_commitments, Commitment};
 use crate::context::{ContextAnalyzer, ContextOpts, SystemPrompt};
 use crate::detectors::{
-    EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, PatternOpts, PatternScanner,
-    SemanticOpts, SemanticScorer, SlotMatcher, SlotOpts, UnicodeNormalizer, UnicodeOpts,
+    AnomalyOpts, AnomalyScorer, DifferentialDetector, DifferentialOpts, EncodingOpts,
+    EncodingScanner, HeuristicOpts, HeuristicScorer, PatternOpts, PatternScanner, SemanticOpts,
+    SemanticScorer, SlotMatcher, SlotOpts, SpotlightDetector, SpotlightOpts, UnicodeNormalizer,
+    UnicodeOpts,
 };
 use crate::error::Result;
 use crate::judge::{LlmJudge, NoopJudge};
@@ -59,6 +61,9 @@ struct Inner {
     heuristics: HeuristicScorer,
     semantic: SemanticScorer,
     slot: SlotMatcher,
+    spotlight: SpotlightDetector,
+    differential: DifferentialDetector,
+    anomaly: AnomalyScorer,
     context: ContextAnalyzer,
     classifier: Box<dyn Classifier>,
     judge: Box<dyn LlmJudge>,
@@ -117,6 +122,11 @@ impl Scanner {
         findings.extend(self.inner.heuristics.scan(&normalized));
         findings.extend(self.inner.semantic.scan(&normalized));
         findings.extend(self.inner.slot.scan(&normalized));
+        findings.extend(self.inner.spotlight.scan(&normalized));
+        // Differential gets the RAW input (pre-normalization) to compare
+        // its own aggressive vs lenient passes.
+        findings.extend(self.inner.differential.scan(user_input));
+        findings.extend(self.inner.anomaly.scan(&normalized));
 
         // 7. Context analyzer (system-prompt aware).
         findings.extend(self.inner.context.analyze(&sp, &normalized));
@@ -260,6 +270,9 @@ impl Scanner {
                 heuristics: HeuristicScorer::default(),
                 semantic: SemanticScorer::default(),
                 slot: SlotMatcher::default(),
+                spotlight: SpotlightDetector::default(),
+                differential: DifferentialDetector::default(),
+                anomaly: AnomalyScorer::default(),
                 context: ContextAnalyzer::default(),
                 classifier: Box::new(NoopClassifier),
                 judge: Box::new(NoopJudge),
@@ -279,11 +292,17 @@ pub struct ScannerBuilder {
     heuristic_opts: HeuristicOpts,
     semantic_opts: SemanticOpts,
     slot_opts: SlotOpts,
+    spotlight_opts: SpotlightOpts,
+    differential_opts: DifferentialOpts,
+    anomaly_opts: AnomalyOpts,
     context_opts: ContextOpts,
     enable_patterns: bool,
     enable_encoding: bool,
     enable_semantic: bool,
     enable_slot: bool,
+    enable_spotlight: bool,
+    enable_differential: bool,
+    enable_anomaly: bool,
     enable_canary: bool,
     judge_consult_threshold: f32,
     classifier: Option<Box<dyn Classifier>>,
@@ -302,11 +321,17 @@ impl ScannerBuilder {
             heuristic_opts: HeuristicOpts::default(),
             semantic_opts: SemanticOpts::default(),
             slot_opts: SlotOpts::default(),
+            spotlight_opts: SpotlightOpts::default(),
+            differential_opts: DifferentialOpts::default(),
+            anomaly_opts: AnomalyOpts::default(),
             context_opts: ContextOpts::default(),
             enable_patterns: true,
             enable_encoding: true,
             enable_semantic: true,
             enable_slot: true,
+            enable_spotlight: true,
+            enable_differential: true,
+            enable_anomaly: true,
             enable_canary: true,
             judge_consult_threshold: 0.5,
             classifier: None,
@@ -341,6 +366,51 @@ impl ScannerBuilder {
     #[must_use]
     pub fn without_slot(mut self) -> Self {
         self.enable_slot = false;
+        self
+    }
+
+    /// Configure the provenance spotlight detector (v0.3).
+    #[must_use]
+    pub fn with_spotlight(mut self, opts: SpotlightOpts) -> Self {
+        self.spotlight_opts = opts;
+        self.enable_spotlight = true;
+        self
+    }
+
+    /// Disable the provenance spotlight detector.
+    #[must_use]
+    pub fn without_spotlight(mut self) -> Self {
+        self.enable_spotlight = false;
+        self
+    }
+
+    /// Configure the differential testing detector (v0.3).
+    #[must_use]
+    pub fn with_differential(mut self, opts: DifferentialOpts) -> Self {
+        self.differential_opts = opts;
+        self.enable_differential = true;
+        self
+    }
+
+    /// Disable the differential testing detector.
+    #[must_use]
+    pub fn without_differential(mut self) -> Self {
+        self.enable_differential = false;
+        self
+    }
+
+    /// Configure the input-space anomaly scorer (v0.3).
+    #[must_use]
+    pub fn with_anomaly(mut self, opts: AnomalyOpts) -> Self {
+        self.anomaly_opts = opts;
+        self.enable_anomaly = true;
+        self
+    }
+
+    /// Disable the input-space anomaly scorer.
+    #[must_use]
+    pub fn without_anomaly(mut self) -> Self {
+        self.enable_anomaly = false;
         self
     }
 
@@ -466,6 +536,29 @@ impl ScannerBuilder {
                 stacked_gap_chars: 0,
             })
         };
+        let spotlight = if self.enable_spotlight {
+            SpotlightDetector::with_opts(self.spotlight_opts)
+        } else {
+            SpotlightDetector::with_opts(SpotlightOpts {
+                spotlight_window_chars: 0,
+            })
+        };
+        let differential = if self.enable_differential {
+            DifferentialDetector::with_opts(self.differential_opts)
+        } else {
+            DifferentialDetector::with_opts(DifferentialOpts {
+                min_divergence: usize::MAX,
+            })
+        };
+        let anomaly = if self.enable_anomaly {
+            AnomalyScorer::with_opts(self.anomaly_opts)
+        } else {
+            AnomalyScorer::with_opts(AnomalyOpts {
+                block_threshold: 2.0,
+                warn_threshold: 2.0,
+                min_word_count: usize::MAX,
+            })
+        };
 
         Ok(Scanner {
             inner: Arc::new(Inner {
@@ -475,6 +568,9 @@ impl ScannerBuilder {
                 heuristics: HeuristicScorer::with_opts(self.heuristic_opts),
                 semantic,
                 slot,
+                spotlight,
+                differential,
+                anomaly,
                 context: ContextAnalyzer::with_opts(self.context_opts),
                 classifier,
                 judge,

@@ -36,7 +36,9 @@ pub mod commitments;
 pub mod context;
 pub mod detectors;
 pub mod error;
+pub mod judge;
 pub mod scanner;
+pub mod streaming;
 pub mod verdict;
 
 pub use canary::{detect_leaks, inject_system_prompt, Canary};
@@ -45,10 +47,12 @@ pub use commitments::{extract_commitments, verify_commitments, Commitment};
 pub use context::{ContextAnalyzer, ContextOpts, Instruction, InstructionKind, SystemPrompt};
 pub use detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
-    PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,
+    PatternOpts, PatternScanner, SemanticOpts, SemanticScorer, UnicodeNormalizer, UnicodeOpts,
 };
 pub use error::{Error, Result};
+pub use judge::{Judgment, LlmJudge, NoopJudge};
 pub use scanner::{Scanner, ScannerBuilder};
+pub use streaming::{IncrementalVerdict, StreamingOutputScanner};
 pub use verdict::{
     CanaryLeak, CanaryState, Category, CommitmentViolation, Decision, Finding, Severity, Verdict,
 };

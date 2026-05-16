@@ -36,9 +36,10 @@ use crate::commitments::{extract_commitments, verify_commitments, Commitment};
 use crate::context::{ContextAnalyzer, ContextOpts, SystemPrompt};
 use crate::detectors::{
     EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, PatternOpts, PatternScanner,
-    UnicodeNormalizer, UnicodeOpts,
+    SemanticOpts, SemanticScorer, UnicodeNormalizer, UnicodeOpts,
 };
 use crate::error::Result;
+use crate::judge::{LlmJudge, NoopJudge};
 use crate::verdict::{CanaryState, Decision, Finding, Severity, Verdict};
 
 /// Threshold above which the aggregated score escalates to `Decision::Flag`.
@@ -56,8 +57,13 @@ struct Inner {
     patterns: Option<PatternScanner>,
     encoding: Option<EncodingScanner>,
     heuristics: HeuristicScorer,
+    semantic: SemanticScorer,
     context: ContextAnalyzer,
     classifier: Box<dyn Classifier>,
+    judge: Box<dyn LlmJudge>,
+    /// Below this aggregate score the orchestrator may consult the judge
+    /// (if a non-noop one is plugged in). Default 0.5 = "uncertain band".
+    judge_consult_threshold: f32,
     enable_canary: bool,
 }
 
@@ -108,6 +114,7 @@ impl Scanner {
             findings.extend(e.scan(&normalized));
         }
         findings.extend(self.inner.heuristics.scan(&normalized));
+        findings.extend(self.inner.semantic.scan(&normalized));
 
         // 7. Context analyzer (system-prompt aware).
         findings.extend(self.inner.context.analyze(&sp, &normalized));
@@ -123,6 +130,35 @@ impl Scanner {
                 score: cls.score.clamp(0.0, 1.0),
                 category: crate::verdict::Category::InstructionDensity,
             });
+        }
+
+        // 8b. LLM-as-judge — v0.3 escalation path. Consulted only when the
+        // current findings sit in the uncertain band (no Block yet, max
+        // score >= judge_consult_threshold). NoopJudge short-circuits so
+        // the default-config scanner stays vendor-neutral and zero-cost.
+        let in_uncertain_band = !findings.iter().any(|f| f.severity == Severity::Block)
+            && findings.iter().map(|f| f.score).fold(0.0_f32, f32::max)
+                >= self.inner.judge_consult_threshold;
+        if in_uncertain_band && self.inner.judge.name() != "noop-judge" {
+            let j = self.inner.judge.judge(system_prompt, &normalized);
+            if j.score > 0.0 {
+                findings.push(Finding {
+                    detector: self.inner.judge.name().to_string(),
+                    severity: classifier_severity(j.score),
+                    message: format!(
+                        "judge label \"{}\" score {:.3}{}",
+                        j.label,
+                        j.score,
+                        j.rationale
+                            .as_deref()
+                            .map(|r| format!(" ({r})"))
+                            .unwrap_or_default()
+                    ),
+                    matched_span: None,
+                    score: j.score.clamp(0.0, 1.0),
+                    category: crate::verdict::Category::InstructionDensity,
+                });
+            }
         }
 
         // 9. Canary injection (input side captures the state; the caller
@@ -220,8 +256,11 @@ impl Scanner {
                 patterns: None,
                 encoding: None,
                 heuristics: HeuristicScorer::default(),
+                semantic: SemanticScorer::default(),
                 context: ContextAnalyzer::default(),
                 classifier: Box::new(NoopClassifier),
+                judge: Box::new(NoopJudge),
+                judge_consult_threshold: 0.5,
                 enable_canary: true,
             }),
         }
@@ -229,17 +268,21 @@ impl Scanner {
 }
 
 /// Builder for [`Scanner`].
-#[allow(missing_debug_implementations)]
+#[allow(missing_debug_implementations, clippy::struct_excessive_bools)]
 pub struct ScannerBuilder {
     unicode: UnicodeOpts,
     pattern_opts: PatternOpts,
     encoding_opts: EncodingOpts,
     heuristic_opts: HeuristicOpts,
+    semantic_opts: SemanticOpts,
     context_opts: ContextOpts,
     enable_patterns: bool,
     enable_encoding: bool,
+    enable_semantic: bool,
     enable_canary: bool,
+    judge_consult_threshold: f32,
     classifier: Option<Box<dyn Classifier>>,
+    judge: Option<Box<dyn LlmJudge>>,
 }
 
 impl ScannerBuilder {
@@ -252,12 +295,46 @@ impl ScannerBuilder {
             pattern_opts: PatternOpts::default(),
             encoding_opts: EncodingOpts::default(),
             heuristic_opts: HeuristicOpts::default(),
+            semantic_opts: SemanticOpts::default(),
             context_opts: ContextOpts::default(),
             enable_patterns: true,
             enable_encoding: true,
+            enable_semantic: true,
             enable_canary: true,
+            judge_consult_threshold: 0.5,
             classifier: None,
+            judge: None,
         }
+    }
+
+    /// Configure the semantic scorer (v0.3).
+    #[must_use]
+    pub fn with_semantic(mut self, opts: SemanticOpts) -> Self {
+        self.semantic_opts = opts;
+        self.enable_semantic = true;
+        self
+    }
+
+    /// Disable the semantic scorer.
+    #[must_use]
+    pub fn without_semantic(mut self) -> Self {
+        self.enable_semantic = false;
+        self
+    }
+
+    /// Plug in an LLM-as-judge (v0.3). The default is [`NoopJudge`].
+    #[must_use]
+    pub fn with_judge<J: LlmJudge + 'static>(mut self, judge: J) -> Self {
+        self.judge = Some(Box::new(judge));
+        self
+    }
+
+    /// Score threshold above which the orchestrator may consult the judge
+    /// (only if a non-noop judge is plugged in). Default 0.5.
+    #[must_use]
+    pub fn with_judge_consult_threshold(mut self, t: f32) -> Self {
+        self.judge_consult_threshold = t.clamp(0.0, 1.0);
+        self
     }
 
     /// Configure the Unicode normalizer.
@@ -345,6 +422,16 @@ impl ScannerBuilder {
         };
         let classifier: Box<dyn Classifier> =
             self.classifier.unwrap_or_else(|| Box::new(NoopClassifier));
+        let judge: Box<dyn LlmJudge> = self.judge.unwrap_or_else(|| Box::new(NoopJudge));
+        let semantic = if self.enable_semantic {
+            SemanticScorer::with_opts(self.semantic_opts)
+        } else {
+            SemanticScorer::with_opts(SemanticOpts {
+                block_threshold: 2.0,
+                warn_threshold: 2.0,
+                max_scan_chars: 0,
+            })
+        };
 
         Ok(Scanner {
             inner: Arc::new(Inner {
@@ -352,8 +439,11 @@ impl ScannerBuilder {
                 patterns,
                 encoding,
                 heuristics: HeuristicScorer::with_opts(self.heuristic_opts),
+                semantic,
                 context: ContextAnalyzer::with_opts(self.context_opts),
                 classifier,
+                judge,
+                judge_consult_threshold: self.judge_consult_threshold,
                 enable_canary: self.enable_canary,
             }),
         })

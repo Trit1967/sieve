@@ -34,7 +34,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sieve/wasm": "workspace:*"
+    "@sieve/wasm": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "@sieve/wasm": { "optional": false }

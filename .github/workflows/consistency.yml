@@ -23,8 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - uses: jetli/wasm-pack-action@v0.4.0
-
       - name: Build sieve-bench (Rust reference)
         run: cargo build --release -p sieve-bench
 
@@ -40,8 +38,6 @@ jobs:
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
-      - name: Build WASM bundle (nodejs target)
-        run: wasm-pack build crates/sieve-wasm --release --target nodejs
-
-      - name: Run cross-language consistency harness
+      - name: Run cross-language consistency harness (Rust + Python)
+        # WASM-from-Node deferred to v0.1.1 — see scripts/consistency-check.sh header.
         run: bash scripts/consistency-check.sh

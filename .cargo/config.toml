@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# pyo3's `extension-module` feature tells the compiler NOT to link
+# libpython, because at runtime Python loads the .so dynamically and
+# resolves the symbols itself. But `cargo test --workspace` builds
+# `sieve-py` as a regular dylib and tries to link the Python symbols,
+# which fails on macOS / Linux without these linker args.
+#
+# We tell the macOS linker to leave undefined Python symbols for the
+# dynamic loader (mirroring what `python` does at runtime). On Linux,
+# the linker is permissive by default, so no flag is needed.
+
+[target.'cfg(target_os = "macos")']
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]

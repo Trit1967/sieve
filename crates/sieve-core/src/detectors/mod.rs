@@ -10,8 +10,10 @@
 //! - Phase 4: `EncodingScanner` (base64 / hex / rot13).
 //! - Phase 5: `HeuristicScorer` (instruction density, script-switch, entropy).
 
+pub mod encoding;
 pub mod patterns;
 pub mod unicode;
 
+pub use encoding::{EncodingOpts, EncodingScanner};
 pub use patterns::{PatternOpts, PatternScanner};
 pub use unicode::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};

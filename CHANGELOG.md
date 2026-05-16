@@ -34,3 +34,10 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   punctuation-stripped scan. Emits one block-level finding per distinct
   matched pattern with the matched span. 100KB perf smoke + 3 property
   tests (determinism, whitespace invariance, never-panic).
+- Phase 4: `EncodingScanner` — base64 / hex / rot13 segment detection
+  with bounded recursion (default max depth 2). Composed with a
+  `PatternScanner` for the post-decode re-scan. Catches base64-encoded
+  and base64-of-base64-encoded jailbreaks. Triple-nested encoding is
+  intentionally out of scope (DoS surface). 1MB pathological-input
+  latency bound (<500ms). 3 property tests (never-panic, deterministic,
+  bounded-latency).

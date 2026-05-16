@@ -79,6 +79,20 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Build bundle
         run: wasm-pack build crates/sieve-wasm --release --target bundler
+      - name: Rewrite package.json name to @sieve/wasm
+        # wasm-pack uses the Cargo crate name `sieve-wasm` as the npm
+        # package name. We want the scoped name `@sieve/wasm`. Do a
+        # tiny, safe in-place rewrite before publish.
+        run: |
+          set -e
+          cd crates/sieve-wasm/pkg
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('package.json','utf8'));
+            p.name = '@sieve/wasm';
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+            console.log('name=', p.name);
+          "
       - name: Publish
         working-directory: crates/sieve-wasm/pkg
         run: npm publish --access public

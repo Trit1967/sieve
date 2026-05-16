@@ -61,6 +61,12 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 15: Reproducible benchmark harness. `benchmarks/run.sh` builds
+  the `sieve-bench` binary (under `benchmarks/harness/`) and writes
+  `benchmarks/REPORT.md`. Bundled-corpus baseline: 100% detection on
+  the 224-line curated jailbreak set, 0% block-FPR on the 108-line
+  benign set, p50 7µs / p99 18µs latency. Harness accepts `--jbb`,
+  `--garak`, `--acl` flags for external corpus integration.
 - Phase 14: Wordlist expanded from ~70 to ~220 hand-curated patterns
   across 8 attack families. Removed FPR-prone single-token control
   patterns (`</system>`, `[INST]`, `###user`, etc.) — they normalize

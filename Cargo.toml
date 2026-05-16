@@ -6,6 +6,7 @@ members = [
     "crates/sieve-py",
     "crates/sieve-wasm",
     "examples/rust-basic",
+    "benchmarks/harness",
 ]
 exclude = [
     "crates/sieve-core/fuzz",

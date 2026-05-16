@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+name: Cross-language consistency
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  consistency:
+    name: Rust / Python / WASM verdict parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - name: Build sieve-bench (Rust reference)
+        run: cargo build --release -p sieve-bench
+      - name: Build Python wheel
+        run: pip install maturin && cd crates/sieve-py && maturin develop --release
+      - name: Build WASM bundle
+        run: wasm-pack build crates/sieve-wasm --release --target nodejs
+      - name: Run cross-language harness
+        run: |
+          set -e
+          for case in benchmarks/consistency/cases/*.txt; do
+            R=$(./target/release/sieve-bench --jailbreaks "$case" --output /tmp/r.md > /tmp/r.txt)
+            python -c "
+import sys, sieve
+s = sieve.Scanner()
+for line in open('$case'):
+    line = line.strip()
+    if not line or line.startswith('#'): continue
+    v = s.scan_input('You are a helpful assistant.', line)
+    print(v.decision)
+" > /tmp/py.txt
+            node -e "
+const { Scanner } = require('./crates/sieve-wasm/pkg/sieve_wasm.js');
+const fs = require('fs');
+const scanner = new Scanner();
+for (const line of fs.readFileSync('$case','utf8').split('\n')) {
+  const t = line.trim();
+  if (!t || t.startsWith('#')) continue;
+  const v = scanner.scanInput('You are a helpful assistant.', t);
+  console.log(v.decision);
+}
+" > /tmp/wasm.txt
+            diff /tmp/py.txt /tmp/wasm.txt || {
+              echo 'FAIL: Python and WASM verdicts diverged'
+              exit 1
+            }
+          done
+          echo 'OK: Rust / Python / WASM verdicts agree'

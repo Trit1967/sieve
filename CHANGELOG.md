@@ -61,6 +61,19 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 17: Full CI/CD pipelines.
+  - ci.yml: fmt + clippy + test matrix (Ubuntu/macOS/Windows × stable/MSRV/
+    nightly) + cargo-deny + no-network audit + cargo-llvm-cov coverage
+    + WASM bundle build & size budget + Python wheel build (3 OSes) +
+    @sieve/nextjs typecheck + vitest.
+  - bench.yml: criterion + bundled-corpus benchmark on every PR; uploads
+    REPORT.md + criterion HTML.
+  - fuzz.yml: weekly cargo-fuzz scheduled (Mondays 06:17 UTC), 1h budget.
+  - consistency.yml: builds all 3 bindings and asserts byte-equal verdict
+    decision strings across Rust / Python / WASM for the smoke corpus.
+  - release.yml: tag-triggered publish to crates.io, PyPI (linux/mac/
+    windows wheels via maturin-action), npm (@sieve/wasm + @sieve/nextjs),
+    plus a GitHub release with CHANGELOG body.
 - Phase 16: Five working examples + 14-page mdbook user guide.
   - `examples/rust-basic` runs all 4 scanner-side cases.
   - `examples/python-fastapi` (FastAPI + sieve.contrib.openai).

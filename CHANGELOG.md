@@ -28,3 +28,9 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
     math alphanumerics, ligatures).
   - Maps a curated Latin/Cyrillic/Greek homoglyph subset to ASCII
     (ADR-0007). 6 property tests at 1024 cases each.
+- Phase 3: `PatternScanner` — Aho-Corasick over a hand-curated 70-entry
+  jailbreak wordlist (`crates/sieve-core/src/data/jailbreaks.txt`) +
+  provenance manifest. Case-insensitive, whitespace-collapsed,
+  punctuation-stripped scan. Emits one block-level finding per distinct
+  matched pattern with the matched span. 100KB perf smoke + 3 property
+  tests (determinism, whitespace invariance, never-panic).

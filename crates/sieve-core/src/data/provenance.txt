@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT
+# Provenance manifest for jailbreaks.txt.
+#
+# Each block records the source of a batch of patterns, the license under
+# which we redistribute them, and the date imported. v0.1 ships a small
+# hand-curated set; Phase 14 will fill this manifest out with upstream
+# attribution batches.
+
+[batch:initial-curated]
+date: 2026-05-16
+license: MIT
+source: hand-curated by maintainers, drawn from public bug reports and
+        academic literature (arXiv 2504.11168; JailbreakBench public set).
+notes: Seed corpus of ~70 entries. Designed for low false-positive rate
+       on benign English while catching the most common jailbreak phrasings.
+       Audited line-by-line.

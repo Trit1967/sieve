@@ -34,7 +34,9 @@ pub mod detectors;
 pub mod error;
 pub mod verdict;
 
-pub use detectors::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};
+pub use detectors::{
+    NormalizationResult, PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,
+};
 pub use error::{Error, Result};
 pub use verdict::{
     CanaryLeak, CanaryState, Category, CommitmentViolation, Decision, Finding, Severity, Verdict,

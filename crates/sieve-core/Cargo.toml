@@ -20,11 +20,13 @@ path = "src/lib.rs"
 [dependencies]
 # Phase 1: serde for the Verdict schema. thiserror for error types.
 # Phase 2: unicode-normalization for NFKC.
-# Later phases add aho-corasick (P3), regex/base64 (P4), getrandom (P6).
+# Phase 3: aho-corasick for the curated jailbreak wordlist scanner.
+# Later phases add regex/base64 (P4), getrandom (P6).
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 unicode-normalization = { workspace = true }
+aho-corasick = { workspace = true }
 
 [features]
 default = []

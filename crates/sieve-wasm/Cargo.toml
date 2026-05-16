@@ -23,6 +23,13 @@ serde-wasm-bindgen = "0.6"
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# getrandom flows in transitively via sieve-core's canary engine. On
+# wasm32-unknown-unknown it has no platform syscall to use, so we must
+# opt in to the `js` feature (which routes through Web Crypto / Node
+# crypto). This dep stanza only applies when compiling for wasm32.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { workspace = true, features = ["js"] }
+
 [features]
 default = []
 

@@ -54,7 +54,12 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --workspace --all-features --no-fail-fast
+      # sieve-py is a pyo3 `extension-module` cdylib. It's tested via the
+      # maturin develop + pytest job above. `cargo test --workspace`
+      # without --exclude would try to link Python symbols into a regular
+      # test binary, which fails on macOS arm64 even with the
+      # .cargo/config.toml `-undefined dynamic_lookup` flag.
+      - run: cargo test --workspace --exclude sieve-py --all-features --no-fail-fast
 
   deny:
     name: cargo deny
@@ -164,7 +169,10 @@ jobs:
       - name: Run pytest
         working-directory: crates/sieve-py
         shell: bash
-        run: pytest python/sieve/tests/ -q
+        # Use `python -m pytest` so the active venv's Python is what runs
+        # the test runner — Windows otherwise resolved `pytest` to a stale
+        # PATH entry that didn't import from the venv.
+        run: python -m pytest python/sieve/tests/ -q
 
   nextjs-build:
     name: '@sieve/nextjs build + vitest'
@@ -175,7 +183,11 @@ jobs:
         with:
           node-version: "20"
       - working-directory: packages/nextjs
+        # --legacy-peer-deps tells npm to skip peer-dependency resolution
+        # for @sieve/wasm (which isn't on the npm registry yet at PR
+        # time — it gets published from the same release pipeline). The
+        # vitest tests mock @sieve/wasm anyway.
         run: |
-          npm install --no-audit --no-fund
+          npm install --no-audit --no-fund --legacy-peer-deps
           npm run typecheck
           npm test

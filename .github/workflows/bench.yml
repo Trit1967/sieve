@@ -18,9 +18,10 @@ jobs:
       - name: Run bundled-corpus benchmark
         run: bash benchmarks/run.sh
       - name: Run criterion benches
-        # `--quick` was removed from criterion; pass --sample-size 10 to
-        # shrink each measurement to keep the bench job under a few minutes.
-        run: cargo bench -p sieve-core --no-fail-fast -- --sample-size 10
+        # --benches skips the auto-generated lib test harness (which
+        # doesn't understand --sample-size). --sample-size 10 keeps
+        # the criterion run under a few minutes for CI.
+        run: cargo bench -p sieve-core --no-fail-fast --benches -- --sample-size 10
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:

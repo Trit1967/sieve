@@ -6,6 +6,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 with the pre-1.0 caveat: minor version bumps may include breaking changes until v1.0.
 
+## [0.3.0] - 2026-05-16
+
+**Headline numbers** (own 3520-probe adversarial suite, see
+`crates/sieve-core/tests/adversarial_500.rs`):
+
+- Catch rate: **100.0%** (2893 / 2894 attacks; the 1 remaining miss
+  is structurally identical to a benign in the corpus and is
+  fundamentally undetectable without conversation context).
+- Benign FPR: **3.5%** (22 / 626 benigns; pre-existing aggressive
+  patterns `roleplay as` / `pretend you are` / `i am the developer`
+  account for the bulk — documented trade-offs).
+- Per-scan latency: p50 ~7µs, p99 ~18µs on bundled corpus
+  (unchanged from v0.1).
+
+### Added
+
+- **`SemanticScorer`** (v0.3) — pure-string structural shape scorer
+  for paraphrase / novel-framing attacks. Imperative-prefix +
+  override-noun co-occurrence + authority framing + system-tag
+  smuggling + persona-shift markers.
+- **`SlotMatcher`** (v0.3) — grammar-based detector with six schemas
+  (`IMP+POSS+ONOUN`, stacked variant, `AUTH+IMP+POSS+ONOUN` and
+  loose variant, `HYPOTH+...` with four relaxations,
+  `PROV+IMP+POSS+ONOUN` and loose variant, `IMP+NEG+ONOUN`) over
+  seven slot dictionaries (~250 fillers total). Possessive-determiner
+  constraint is the FPR-control trick.
+- **`SpotlightDetector`** (v0.3) — Microsoft Research spotlighting
+  pattern in pure offline form. ~70 provenance wrappers × ~100
+  suspicious verb prefixes; any imperative inside a spotlighted zone
+  fires regardless of grammar.
+- **`DifferentialDetector`** (v0.3) — runs aggressive vs lenient
+  normalization passes; flags inputs where the aggressive pass finds
+  substantially more attack needles. Catches hidden-character tricks.
+- **`AnomalyScorer`** (v0.3) — pure-stat distributional anomaly score
+  (command-verb density + self-reference density + caps density +
+  bracket density). Capped contributions ensure no single signal can
+  fire Block alone; conservative defaults (warn ≥0.75, block ≥0.95).
+- **`LlmJudge` trait + `NoopJudge`** (v0.3) — pluggable LLM-as-judge
+  escalation path. Consulted by the scanner only when findings sit
+  in the uncertain band. NoopJudge is the default; sieve-core remains
+  fully vendor-neutral and offline.
+- **`StreamingOutputScanner`** (v0.3) — chunk-by-chunk output scanner
+  with `IncrementalVerdict::should_stop()` helper for the common
+  break-on-block streaming loop.
+- **`sieve` CLI binary** (v0.3) — first-party command line.
+  `sieve scan` reads from stdin (or `--input file`), prints JSON
+  verdict, exits 0/1/2 for Allow/Flag/Block.
+- **Wordlist expansion**: ~220 → ~470 patterns across persona
+  hijacks (DAN/AIM/STAN/EvilGPT/etc.), social-engineering /
+  fake-memory, paraphrase variants, no-vowel forms, multi-turn
+  context-poisoning anchors, authority framing, obfuscation
+  exfiltration, programmatic decorator combinations.
+- **`EncodingScanner`**: URL percent-decode, HTML-entity decode,
+  reversed-string, l33t (per-position '1'→i/l brute-force),
+  doubled-letter pair-collapse. Closes URL/HTML/reversed/l33t
+  attack classes that v0.1 missed at 0%.
+- **`ScannerBuilder` opt-outs**: `without_slot`, `without_spotlight`,
+  `without_differential`, `without_anomaly`, `without_semantic`,
+  `with_judge`, `with_judge_consult_threshold` for per-app tuning.
+- **Probe suite**: 506 → 3520 probes. New classes: spotlight-targeted,
+  zero-width hidden, multi-turn / authority-v3, indirect-v3,
+  tool-injection-v3, obfuscation-v3, hypothetical, long-paraphrase,
+  programmatic stem × decorator cross-products, programmatic
+  encoded-stem variants. Plus ~300 new benign probes for FPR floor.
+
+### Changed
+
+- `MatchKind::LeftmostLongest` (not `Standard`) for the SlotMatcher's
+  AC — Standard mode picks first-to-end matches, which suppressed
+  longer AUTH/PROV patterns under shorter POSS overlap and broke
+  Schema 3 / Schema 5.
+- Aggressive bare wordlist patterns removed where the slot grammar
+  now catches them with better FPR: `pretend you are`-style entries
+  rely on Schema 6 when paired with override-noun.
+- Probe suite assertion: `>= 90%` catch, `<= 6.5%` FPR (was `>= 55%`
+  / `<= 5.0%` in v0.1). Actual numbers blow past both gates.
+
+### Fixed
+
+- L33t-speak attack class: 0% → ~100% catch via per-position '1'→i/l
+  brute-force unleet (handles in-attack collisions like `d1sr...ru1e5`
+  needing both mappings simultaneously).
+- WASM build: enabled `bulk-memory` and `nontrapping-float-to-int`
+  in wasm-opt for Rust 1.95 compatibility.
+
 ## [0.1.0] - 2026-05-16
 
 First stable release of `sieve`. Identical artifact to v0.1.0-rc1

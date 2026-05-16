@@ -61,6 +61,15 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 10: Scanner orchestrator (`sieve_core::scanner`). `Scanner` +
+  `ScannerBuilder` wire together all 8 v0.1 detectors:
+  Unicode → Pattern → Encoding → Heuristic → Context → Classifier →
+  Canary injection. `scan_input(system_prompt, user_input) -> Verdict`
+  and `scan_output(system_prompt, output, &canary_state) -> Verdict`.
+  Decision aggregator: Block if any Severity::Block finding, Flag if
+  max score >=0.5, else Allow. Custom Classifier pluggable via
+  `with_classifier(impl Classifier + 'static)`. 3 property tests
+  (deterministic, score bounded, never-panic) at 128 cases.
 - Phase 9: BYO-ONNX classifier interface (`sieve_core::classifier`).
   `Classifier` trait (Send + Sync + Debug, object-safe) so users plug in
   any inference runtime — ort, candle, burn, custom HTTP, etc. Default

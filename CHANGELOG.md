@@ -61,6 +61,14 @@ with the pre-1.0 caveat: minor version bumps may include breaking changes until 
   via keyword overlap + override-phrase detection; explicit override
   phrases ("ignore", "you are now") lower the overlap bar. Prohibitions
   fire at Severity::Block, others at Warn. 2 property tests.
+- Phase 9: BYO-ONNX classifier interface (`sieve_core::classifier`).
+  `Classifier` trait (Send + Sync + Debug, object-safe) so users plug in
+  any inference runtime — ort, candle, burn, custom HTTP, etc. Default
+  `NoopClassifier` returns "safe" on every input. `ClassificationResult`
+  has score + label + metadata map. `onnx` feature gates a placeholder
+  `OnnxClassifier::placeholder()` for v0.2's `ort`-backed reference
+  implementation; bundling weights is explicitly v0.3 (R11, ADR placeholder
+  for v0.2 onnx integration).
 - Phase 8: Deterministic commitment extraction + verification
   (`sieve_core::commitments`). Three commitment families: Language
   (canonicalized over 9 top languages), Persona (excludes filler

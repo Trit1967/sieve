@@ -2,7 +2,8 @@
 
 > Vendor-neutral, embeddable, offline-first prompt injection defense.
 >
-> **Status: pre-release.** v0.1 is under active construction; do not deploy in production yet.
+> **Status: pre-release v0.3.** This is suitable for evaluation and integration
+> testing, not yet for unattended production enforcement.
 
 Strings in. Verdicts out. No network calls. No LLM-vendor lock-in. No telemetry. Ever.
 
@@ -25,22 +26,27 @@ if verdict.decision == Decision::Block {
 
 This section is intentionally first. Honesty is the project's reputational moat.
 
-**Measured catch rate** on a 500-probe generated adversarial suite (the actual range of attacker tactics, not a curated wishlist): **59.7%** (243/407). Published independent benchmarks: Lakera Guard 74.6%, Azure Prompt Shield 42.98% (arXiv 2505.13028). We're in the same ballpark; the documented bypass classes are real and listed here.
+**Measured current harness:** `2893 / 2894` attack probes caught and
+`22 / 626` benign stress probes false-blocked by the default strict mode in
+`crates/sieve-core/tests/adversarial_500.rs`. The suite is generated and
+repo-local, not an independent benchmark. Published independent benchmarks for
+other systems include Lakera Guard 74.6% and Azure Prompt Shield 42.98%
+(arXiv 2505.13028); those numbers are not directly comparable to this corpus.
 
 | Class | Caught | Notes |
 |---|---|---|
 | Unicode smuggling (zero-width, tags, homoglyphs, NFKC, math alphanumerics) | **100%** | The hero feature. Every documented ACL'25 bypass is in the regression suite. |
 | Direct keyword phrases ("ignore all previous instructions" + 220 variants) | **100%** | The curated wordlist. |
-| Base64 / hex / rot13 encoded payloads (1 layer, up to 2 with re-scan) | **~67%** | Caught when decoded text contains a curated phrase; missed when paraphrased. |
-| URL-encoded payloads (`%69%67%6E%6F%72%65`) | **0%** | v0.1 doesn't decode percent-escapes. v0.2 will. |
-| HTML-entity-encoded payloads (`&#x69;&#x67;...`) | **0%** | Same — v0.2 work. |
-| Reversed strings (`snoitcurtsni suoiverp lla erongi`) | **0%** | Documented gap. |
-| **L33t-speak** (`1gn0r3 4ll pr3v10u5...`), vowel-removal, doubled-letters | **0%** | v0.1 wordlist is exact-substring; v0.2 wordlist expansion adds variants. |
-| **Paraphrased jailbreaks** ("forget what I told you", "override the system prompt", "drop the act", "spit out your context") | **~30%** | The biggest absolute miss class. We're a pattern + heuristic engine, not a semantic understander. v0.3 adds optional LLM-judge. |
-| **Novel persona names** (STAN, AIM, EvilGPT, ChadGPT, Cody, OPPO, Mongo Tom, "Bob is an AI...") | **~50%** | Caught when the prompt contains "you are" / "pretend" / "act as" + a name. Missed when the name is just declared bare. |
-| **Fake-memory social engineering** ("Earlier you said...", "Per our agreement...") | **~20%** | Multi-turn conversation tracker in v0.2 will close this. |
-| **Tool / control-token injection** (`<\|im_start\|>system`, `<function_call>...`, JSON tool responses) | **~20%** | Wordlist removed the single-token entries to control FPR. v0.2 ships a raw-bytes scanner pass. |
-| **Adaptive adversarial attacks** (gradient-optimized, RL-driven) | n/a | Industry-wide unsolved (sub-50% catch rate everywhere as of 2026). We won't claim otherwise. |
+| Base64 / hex / rot13 encoded payloads (1 layer, up to 2 with re-scan) | High on generated suite | Caught when decoded text contains a known or structurally matched jailbreak; not a proof against arbitrary ciphertext or paraphrase. |
+| URL-encoded payloads (`%69%67%6E%6F%72%65`) | High on generated suite | Percent decoding is implemented, but coverage still depends on decoded content. |
+| HTML-entity-encoded payloads (`&#x69;&#x67;...`) | High on generated suite | Numeric and common named entities are decoded; unknown entities may pass through. |
+| Reversed strings (`snoitcurtsni suoiverp lla erongi`) | High on generated suite | Whole-input reversal is covered; arbitrary transforms are not. |
+| **L33t-speak** (`1gn0r3 4ll pr3v10u5...`), vowel-removal, doubled-letters | High on generated suite | Common substitutions are covered; this remains heuristic, not exhaustive. |
+| **Paraphrased jailbreaks** ("forget what I told you", "override the system prompt", "drop the act", "spit out your context") | High on generated suite | Structural scorers help, but adaptive natural-language paraphrase remains the largest unsolved class. |
+| **Novel persona names** (STAN, AIM, EvilGPT, ChadGPT, Cody, OPPO, Mongo Tom, "Bob is an AI...") | Partial | Caught when persona framing overlaps override structure; bare fictional names can still be missed. |
+| **Fake-memory social engineering** ("Earlier you said...", "Per our agreement...") | Partial | Single-turn signals exist; durable multi-turn state is still future work. |
+| **Tool / control-token injection** (`<\|im_start\|>system`, `<function_call>...`, JSON tool responses) | Partial | Textual tool/control-token patterns are covered; declarative tool invariant checking is still future work. |
+| **Adaptive adversarial attacks** (gradient-optimized, RL-driven) | n/a | Not solved here. Do not treat this library as a formal guarantee against adaptive attackers. |
 | **Indirect injection from RAG content** | **~80%** | Caught when injected text contains curated patterns. We *flag* (with provenance in v0.2); we cannot *stop* the model from being persuaded. |
 | PII detection | — | Adjacent problem; deferred to v0.4 or a sister crate. |
 | Generic content moderation (toxicity, hate, NSFW) | — | Out of scope. Use Llama Guard or similar. |
@@ -48,13 +54,15 @@ This section is intentionally first. Honesty is the project's reputational moat.
 
 If you're reading this thinking "wait, that's a lot of things you don't catch" — yes. Every prompt-injection library on the market has these limits. Most don't lead with them. We do.
 
-**Reproducibility:** the full per-class catch + FPR breakdown is generated by `cargo test -p sieve-core --test adversarial_500 --release -- --nocapture`. Re-run it any time; the source is in `crates/sieve-core/tests/adversarial_500.rs`.
+**Reproducibility:** the full per-class catch + FPR breakdown is generated by
+`cargo test -p sieve-core --test adversarial_500 -- --nocapture`. Re-run it
+any time; the source is in `crates/sieve-core/tests/adversarial_500.rs`.
 
 ---
 
 ## The headline bypass: Unicode smuggling
 
-Documented in [arXiv 2504.11168](https://arxiv.org/abs/2504.11168) (ACL LLMSec 2025): zero-width characters, Unicode tags, and homoglyphs achieve up to **100% evasion** against Lakera, Azure Prompt Shields, Meta Prompt Guard, and ProtectAI v2. No published competitor has shipped a fix.
+Documented in [arXiv 2504.11168](https://arxiv.org/abs/2504.11168) (ACL LLMSec 2025): zero-width characters, Unicode tags, and homoglyphs can evade prompt-injection defenses that scan only the visible text.
 
 ```rust
 // Attacker payload — visible as "hello"; smuggled instructions in tag chars
@@ -75,7 +83,7 @@ The normalization step strips zero-width chars and Unicode tag codepoints before
 
 ```toml
 [dependencies]
-sieve = "0.1"
+sieve-core = "0.3"
 ```
 
 ### Python
@@ -105,9 +113,10 @@ pre = scanner.scan_input(system_prompt, user_input)
 if pre.is_block():
     raise sieve.PromptInjectionBlocked(pre)
 
-response = your_llm_call()    # Ollama / OpenAI / Anthropic / custom — doesn't matter
+instrumented_system, canary_state = sieve.instrument_system_prompt(system_prompt)
+response = your_llm_call(instrumented_system, user_input)
 
-post = scanner.scan_output(system_prompt, response, pre.canary_state)
+post = scanner.scan_output(system_prompt, response, canary_state)
 print(post.decision, post.findings)
 ```
 
@@ -119,8 +128,23 @@ const scanner = new Scanner();
 const pre = scanner.scanInput(systemPrompt, userInput);
 if (pre.decision === 'Block') return new Response('blocked', { status: 400 });
 
-const response = await yourLlmCall();
-const post = scanner.scanOutput(systemPrompt, response, pre.canary_state);
+const instrumented = scanner.instrumentSystemPrompt(systemPrompt);
+const response = await yourLlmCall(instrumented.system_prompt, userInput);
+const post = scanner.scanOutput(systemPrompt, response, instrumented.canary_state);
+```
+
+## Operating modes
+
+`Scanner::default()` uses `strict` mode to preserve historical behavior. Use
+`balanced` when you want ambiguous block-level findings downgraded to flags,
+and `monitor` when you want findings without blocking.
+
+```rust
+use sieve_core::{Scanner, ScannerMode};
+
+let scanner = Scanner::builder()
+    .with_mode(ScannerMode::Balanced)
+    .build()?;
 ```
 
 ## Optional contrib helpers
@@ -145,7 +169,7 @@ const protectedModel = sieveMiddleware(openai('gpt-4o'));
 
 ## Benchmarks
 
-Coming with v0.1.0-rc1. See `benchmarks/REPORT.md` (generated by `benchmarks/run.sh`) for:
+See `benchmarks/REPORT.md` (generated by `benchmarks/run.sh`) for:
 
 - Detection rate per attack category vs JailbreakBench, garak, ACL'25 bypasses.
 - False-positive rate on a curated benign corpus.

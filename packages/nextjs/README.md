@@ -26,6 +26,9 @@ const resp = await client.chat.completions.create({
 console.log(resp.sieve.decision); // 'Allow' | 'Flag' | 'Block'
 ```
 
+The wrapper instruments the outbound system prompt with a canary before the
+provider call and scans the response with the matching canary state.
+
 ## Vercel AI SDK
 
 ```typescript
@@ -36,6 +39,9 @@ import { sieveMiddleware } from "@sieve/nextjs/ai-sdk";
 const protectedModel = sieveMiddleware(openai("gpt-4o"));
 const result = await generateText({ model: protectedModel, prompt: "..." });
 ```
+
+Streaming calls are pre-flight scanned; post-flight chunk scanning is exposed
+by the Rust core and will be wired into the helper package separately.
 
 ## Next.js Edge middleware
 

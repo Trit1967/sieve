@@ -12,21 +12,25 @@
 // re-exported `Scanner` / `Verdict` shapes for users who want to drive
 // the scanner themselves.
 
-import init, { Scanner } from "@sieve/wasm";
+import * as sieveWasm from "@sieve/wasm";
 
 let initialized: Promise<void> | null = null;
-let scanner: Scanner | null = null;
+type ScannerHandle = InstanceType<typeof sieveWasm.Scanner>;
+let scanner: ScannerHandle | null = null;
 
 /** Internal: ensure the wasm module is loaded exactly once. */
-async function getScanner(): Promise<Scanner> {
+async function getScanner(): Promise<ScannerHandle> {
   if (!initialized) {
     initialized = (async () => {
-      await init();
+      const maybeInit = (sieveWasm as { default?: () => Promise<unknown> }).default;
+      if (typeof maybeInit === "function") {
+        await maybeInit();
+      }
     })();
   }
   await initialized;
   if (!scanner) {
-    scanner = new Scanner();
+    scanner = new sieveWasm.Scanner();
   }
   return scanner;
 }
@@ -69,6 +73,11 @@ export interface CommitmentViolation {
   confidence: number;
 }
 
+export interface InstrumentedPrompt {
+  system_prompt: string;
+  canary_state: CanaryState;
+}
+
 /**
  * Stateless input-only scan.
  *
@@ -85,6 +94,14 @@ export async function sieveCheck(
 ): Promise<Verdict> {
   const s = await getScanner();
   return s.scanInput(systemPrompt, userInput) as Verdict;
+}
+
+/** Convenience: instrument a system prompt with a fresh canary. */
+export async function instrumentSystemPrompt(
+  systemPrompt: string,
+): Promise<InstrumentedPrompt> {
+  const s = await getScanner();
+  return s.instrumentSystemPrompt(systemPrompt) as InstrumentedPrompt;
 }
 
 /** Convenience: scan an output given the canary state from a prior input scan. */
@@ -107,4 +124,4 @@ export class PromptInjectionBlocked extends Error {
   }
 }
 
-export const SIEVE_NEXTJS_VERSION = "0.1.0";
+export const SIEVE_NEXTJS_VERSION = "0.3.0";

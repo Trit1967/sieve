@@ -13,6 +13,7 @@
 import {
   sieveCheck,
   sieveCheckOutput,
+  instrumentSystemPrompt,
   PromptInjectionBlocked,
   type Verdict,
 } from "./index.js";
@@ -60,6 +61,22 @@ function responseText(resp: ChatCompletion): string {
   return resp.choices?.[0]?.message?.content ?? "";
 }
 
+function withInstrumentedSystem(args: CreateArgs, systemPrompt: string): CreateArgs {
+  const messages = args.messages ?? [];
+  let replaced = false;
+  const patched = messages.map((m) => {
+    if (m.role === "system") {
+      replaced = true;
+      return { ...m, content: systemPrompt };
+    }
+    return m;
+  });
+  if (!replaced) {
+    patched.unshift({ role: "system", content: systemPrompt });
+  }
+  return { ...args, messages: patched };
+}
+
 /**
  * Wrap an OpenAI client so every `chat.completions.create` call is
  * scanned in and out. Returns the same client (mutated in place).
@@ -82,9 +99,12 @@ export function wrapOpenAI<T extends {
     if (pre.decision === "Block") {
       throw new PromptInjectionBlocked(pre);
     }
-    const resp: ChatCompletion = await original(args);
+    const instrumented = await instrumentSystemPrompt(system);
+    const resp: ChatCompletion = await original(
+      withInstrumentedSystem(args, instrumented.system_prompt),
+    );
     const text = responseText(resp);
-    const post = await sieveCheckOutput(system, text, pre.canary_state);
+    const post = await sieveCheckOutput(system, text, instrumented.canary_state);
     (resp as { sieve?: Verdict }).sieve = post;
     if (post.decision === "Block") {
       throw new PromptInjectionBlocked(post);

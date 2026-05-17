@@ -53,7 +53,7 @@ pub use detectors::{
 };
 pub use error::{Error, Result};
 pub use judge::{Judgment, LlmJudge, NoopJudge};
-pub use scanner::{Scanner, ScannerBuilder};
+pub use scanner::{Scanner, ScannerBuilder, ScannerMode};
 pub use streaming::{IncrementalVerdict, StreamingOutputScanner};
 pub use verdict::{
     CanaryLeak, CanaryState, Category, CommitmentViolation, Decision, Finding, Severity, Verdict,

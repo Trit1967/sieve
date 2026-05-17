@@ -18,7 +18,7 @@ strings that flow through.
 from __future__ import annotations
 
 from typing import Any
-from sieve import Scanner, PromptInjectionBlocked
+from sieve import Scanner, PromptInjectionBlocked, instrument_system_prompt
 
 
 def _extract_messages(kwargs: dict[str, Any]) -> tuple[str, str]:
@@ -60,6 +60,36 @@ def _response_text(resp: Any) -> str:
         return ""
 
 
+def _with_instrumented_system(kwargs: dict[str, Any], instrumented_system: str) -> dict[str, Any]:
+    """Return kwargs with the outbound system message replaced or inserted."""
+    patched = dict(kwargs)
+    messages = list(patched.get("messages", []) or [])
+    replaced = False
+    out: list[Any] = []
+
+    for m in messages:
+        if isinstance(m, dict):
+            item = dict(m)
+            if item.get("role") == "system":
+                item["content"] = instrumented_system
+                replaced = True
+            out.append(item)
+        else:
+            if getattr(m, "role", None) == "system":
+                try:
+                    setattr(m, "content", instrumented_system)
+                    replaced = True
+                except (AttributeError, TypeError):
+                    pass
+            out.append(m)
+
+    if not replaced:
+        out.insert(0, {"role": "system", "content": instrumented_system})
+
+    patched["messages"] = out
+    return patched
+
+
 def wrap(client: Any, scanner: Scanner | None = None) -> Any:
     """Wrap an OpenAI client. Returns the same client with
     ``chat.completions.create`` monkey-patched in place.
@@ -84,9 +114,10 @@ def wrap(client: Any, scanner: Scanner | None = None) -> Any:
         pre = scanner.scan_input(system, user)
         if pre.is_block():
             raise PromptInjectionBlocked(pre)
-        resp = original(**kwargs)
+        instrumented_system, canary_state = instrument_system_prompt(system)
+        resp = original(**_with_instrumented_system(kwargs, instrumented_system))
         text = _response_text(resp)
-        post = scanner.scan_output(system, text, pre.canary_state)
+        post = scanner.scan_output(system, text, canary_state)
         try:
             setattr(resp, "sieve", post)
         except (AttributeError, TypeError):

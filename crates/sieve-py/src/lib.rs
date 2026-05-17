@@ -19,12 +19,13 @@
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use pyo3::wrap_pyfunction;
 
 use sieve_core::{
-    CanaryLeak as CoreCanaryLeak, CanaryState as CoreCanaryState, Category as CoreCategory,
-    CommitmentViolation as CoreCommitmentViolation, Decision as CoreDecision,
-    Finding as CoreFinding, Scanner as CoreScanner, Severity as CoreSeverity,
-    Verdict as CoreVerdict,
+    inject_system_prompt, CanaryLeak as CoreCanaryLeak, CanaryState as CoreCanaryState,
+    Category as CoreCategory, CommitmentViolation as CoreCommitmentViolation,
+    Decision as CoreDecision, Finding as CoreFinding, Scanner as CoreScanner,
+    ScannerMode as CoreScannerMode, Severity as CoreSeverity, Verdict as CoreVerdict,
 };
 
 // ---- Decision / Severity / Category ------------------------------------
@@ -285,10 +286,20 @@ struct Scanner {
 #[pymethods]
 impl Scanner {
     #[new]
-    fn new() -> Self {
-        Self {
-            inner: CoreScanner::default(),
-        }
+    #[pyo3(signature = (mode=None))]
+    fn new(mode: Option<&str>) -> PyResult<Self> {
+        let mode = mode
+            .map(|m| {
+                CoreScannerMode::parse(m)
+                    .ok_or_else(|| PyValueError::new_err("mode must be strict|balanced|monitor"))
+            })
+            .transpose()?
+            .unwrap_or(CoreScannerMode::Strict);
+        let inner = CoreScanner::builder()
+            .with_mode(mode)
+            .build()
+            .map_err(|e| PyRuntimeError::new_err(format!("scanner build: {e}")))?;
+        Ok(Self { inner })
     }
 
     fn scan_input(&self, system_prompt: &str, user_input: &str) -> Verdict {
@@ -315,6 +326,18 @@ impl Scanner {
     }
 }
 
+/// Instrument a system prompt with a fresh canary.
+///
+/// Returns `(instrumented_system_prompt, canary_state)`. Contrib wrappers send
+/// the instrumented prompt to the model and reuse the canary state for
+/// post-flight scanning.
+#[pyfunction]
+fn instrument_system_prompt(system_prompt: &str) -> PyResult<(String, CanaryState)> {
+    inject_system_prompt(system_prompt)
+        .map(|(instrumented, inner)| (instrumented, CanaryState { inner }))
+        .map_err(|e| PyRuntimeError::new_err(format!("canary instrument: {e}")))
+}
+
 // ---- Module init -------------------------------------------------------
 
 #[pymodule]
@@ -325,6 +348,7 @@ fn _native(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CanaryState>()?;
     m.add_class::<CanaryLeak>()?;
     m.add_class::<CommitmentViolation>()?;
+    m.add_function(wrap_pyfunction!(instrument_system_prompt, m)?)?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     Ok(())
 }

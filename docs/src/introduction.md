@@ -16,8 +16,8 @@ if verdict.decision == Decision::Block {
 }
 ```
 
-> **Status: pre-release.** v0.1 is under active construction; do not
-> deploy in production yet.
+> **Status: pre-release v0.3.** Suitable for evaluation and integration
+> testing; not yet for unattended production enforcement.
 
 ## Who this is for
 
@@ -27,7 +27,7 @@ if verdict.decision == Decision::Block {
 - **Privacy-constrained teams** (healthcare / finance / gov) — 100% offline.
 - **Open-source LLM projects** (Ollama / vLLM / llama.cpp wrappers).
 
-## What you get in v0.1
+## What you get in v0.3
 
 - 8 deterministic detectors: Unicode strip / homoglyph map, curated
   pattern wordlist, encoding payload scanner, heuristic scorer,

@@ -41,9 +41,17 @@ declare module "@sieve/wasm" {
     latency_us: number;
   }
 
+  export interface InstrumentedPrompt {
+    system_prompt: string;
+    canary_state: { canaries: string[] };
+  }
+
+  export type ScannerMode = "strict" | "balanced" | "monitor";
+
   export class Scanner {
-    constructor();
+    constructor(mode?: ScannerMode);
     scanInput(systemPrompt: string, userInput: string): Verdict;
+    instrumentSystemPrompt(systemPrompt: string): InstrumentedPrompt;
     scanOutput(
       systemPrompt: string,
       output: string,

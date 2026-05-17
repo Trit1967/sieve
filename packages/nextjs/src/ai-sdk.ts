@@ -17,6 +17,7 @@
 import {
   sieveCheck,
   sieveCheckOutput,
+  instrumentSystemPrompt,
   PromptInjectionBlocked,
   type CanaryState,
 } from "./index.js";
@@ -79,6 +80,32 @@ function generatedText(result: DoGenerateResult): string {
   return "";
 }
 
+function withInstrumentedPrompt(
+  options: DoGenerateOptions,
+  systemPrompt: string,
+): DoGenerateOptions {
+  const prompt = options.prompt;
+  const parts: PromptPart[] = Array.isArray(prompt)
+    ? prompt
+    : ((prompt as { messages?: PromptPart[] } | undefined)?.messages ?? []);
+  let replaced = false;
+  const patched = parts.map((p) => {
+    const role = p.role ?? p.type ?? "";
+    if (role === "system") {
+      replaced = true;
+      return { ...p, content: systemPrompt };
+    }
+    return p;
+  });
+  if (!replaced) {
+    patched.unshift({ role: "system", content: systemPrompt });
+  }
+  if (Array.isArray(prompt)) {
+    return { ...options, prompt: patched };
+  }
+  return { ...options, prompt: { ...(prompt ?? {}), messages: patched } };
+}
+
 /**
  * Wrap a Vercel AI SDK language model so inbound prompts are scanned
  * before the call and outputs are scanned after. Returns a new model
@@ -94,8 +121,15 @@ export function sieveMiddleware<M extends LanguageModelLike>(model: M): M {
       if (pre.decision === "Block") {
         throw new PromptInjectionBlocked(pre);
       }
-      const result = await original(options);
-      const post = await sieveCheckOutput(system, generatedText(result), pre.canary_state);
+      const instrumented = await instrumentSystemPrompt(system);
+      const result = await original(
+        withInstrumentedPrompt(options, instrumented.system_prompt),
+      );
+      const post = await sieveCheckOutput(
+        system,
+        generatedText(result),
+        instrumented.canary_state,
+      );
       (result as { sieve?: unknown }).sieve = post;
       if (post.decision === "Block") {
         throw new PromptInjectionBlocked(post);

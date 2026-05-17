@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Tag or branch to publish (e.g. v0.1.0)"
+        description: "Tag or branch to publish (e.g. v0.3.0)"
         required: true
-        default: "v0.1.0"
+        default: "v0.3.0"
 
 permissions:
   contents: write

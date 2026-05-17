@@ -19,7 +19,10 @@
 use serde_wasm_bindgen::Serializer;
 use wasm_bindgen::prelude::*;
 
-use sieve_core::{CanaryState as CoreCanaryState, Scanner as CoreScanner};
+use sieve_core::{
+    inject_system_prompt, CanaryState as CoreCanaryState, Scanner as CoreScanner,
+    ScannerMode as CoreScannerMode,
+};
 
 /// Scanner handle exposed to JavaScript.
 #[wasm_bindgen]
@@ -31,14 +34,23 @@ pub struct Scanner {
 impl Scanner {
     /// Construct a default scanner.
     ///
-    /// The default scanner enables every v0.1 detector. Equivalent to
-    /// `Scanner.builder().build()` once the builder is exposed.
+    /// The default scanner enables every detector in strict mode.
     #[wasm_bindgen(constructor)]
     #[must_use]
-    pub fn new() -> Self {
-        Self {
-            inner: CoreScanner::default(),
-        }
+    pub fn new(mode: Option<String>) -> Result<Self, JsError> {
+        let mode = mode
+            .as_deref()
+            .map(|m| {
+                CoreScannerMode::parse(m)
+                    .ok_or_else(|| JsError::new("mode must be strict|balanced|monitor"))
+            })
+            .transpose()?
+            .unwrap_or(CoreScannerMode::Strict);
+        let inner = CoreScanner::builder()
+            .with_mode(mode)
+            .build()
+            .map_err(|e| JsError::new(&format!("scanner build: {e}")))?;
+        Ok(Self { inner })
     }
 
     /// Run the input-side pipeline.
@@ -55,6 +67,26 @@ impl Scanner {
         // serializer matches the JSON wire format produced by the Rust core.
         v.serialize(&Serializer::json_compatible())
             .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
+    }
+
+    /// Instrument a system prompt with a fresh canary.
+    ///
+    /// Returns `{ system_prompt, canary_state }`. Wrappers should send the
+    /// returned `system_prompt` to the model and pass the returned
+    /// `canary_state` to `scanOutput`.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if canary generation or serialization fails.
+    #[wasm_bindgen(js_name = instrumentSystemPrompt)]
+    pub fn instrument_system_prompt(&self, system_prompt: &str) -> Result<JsValue, JsError> {
+        let (instrumented, canary_state) = inject_system_prompt(system_prompt)
+            .map_err(|e| JsError::new(&format!("canary instrument: {e}")))?;
+        let out = serde_json::json!({
+            "system_prompt": instrumented,
+            "canary_state": canary_state,
+        });
+        out.serialize(&Serializer::json_compatible())
+            .map_err(|e| JsError::new(&format!("instrument serialize: {e}")))
     }
 
     /// Run the output-side pipeline.
@@ -91,7 +123,9 @@ impl Scanner {
 
 impl Default for Scanner {
     fn default() -> Self {
-        Self::new()
+        Self {
+            inner: CoreScanner::default(),
+        }
     }
 }
 

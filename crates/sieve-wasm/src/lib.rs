@@ -26,6 +26,7 @@ use sieve_core::{
 
 /// Scanner handle exposed to JavaScript.
 #[wasm_bindgen]
+#[derive(Default)]
 pub struct Scanner {
     inner: CoreScanner,
 }
@@ -35,8 +36,12 @@ impl Scanner {
     /// Construct a default scanner.
     ///
     /// The default scanner enables every detector in strict mode.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if `mode` is not `strict`, `balanced`, or `monitor`,
+    /// or if scanner construction fails.
     #[wasm_bindgen(constructor)]
-    #[must_use]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn new(mode: Option<String>) -> Result<Self, JsError> {
         let mode = mode
             .as_deref()
@@ -118,14 +123,6 @@ impl Scanner {
         let v = self.inner.scan_output(system_prompt, output, &cs);
         v.serialize(&Serializer::json_compatible())
             .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
-    }
-}
-
-impl Default for Scanner {
-    fn default() -> Self {
-        Self {
-            inner: CoreScanner::default(),
-        }
     }
 }
 

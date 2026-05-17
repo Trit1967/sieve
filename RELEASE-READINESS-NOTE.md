@@ -50,7 +50,7 @@ Observed highlights:
 - `sieve-wasm` lower-level Rust build for `wasm32-unknown-unknown` passed after installing that target.
 - Full `wasm-pack build crates/sieve-wasm --release --target web` passed.
 - Full `wasm-pack build crates/sieve-wasm --release --target bundler` passed.
-- Clean sample install smoke passed using local `@sieve/wasm` and `@sieve/nextjs` artifacts.
+- Clean Node sample install smoke passed using local `@sieve/wasm` (`wasm-pack --target nodejs`) and `@sieve/nextjs` artifacts.
 - The sample smoke caught and drove fixes for two package-shape issues:
   - `@sieve/nextjs` ESM exports pointed to `.mjs` files that the build does not emit.
   - `@sieve/nextjs` assumed a default WASM init export; it now tolerates wasm-pack targets that do not provide one.

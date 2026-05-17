@@ -54,20 +54,15 @@ const FLAG_THRESHOLD: f32 = 0.5;
 /// blocks. `Balanced` blocks only the highest-confidence findings and flags
 /// ambiguous block-severity findings. `Monitor` never blocks and is intended
 /// for logging, tuning, and phased rollout.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ScannerMode {
     /// Aggressive blocking for high-risk environments.
+    #[default]
     Strict,
     /// Block only highest-confidence findings; flag ambiguous cases.
     Balanced,
     /// Never block; return findings and scores only.
     Monitor,
-}
-
-impl Default for ScannerMode {
-    fn default() -> Self {
-        Self::Strict
-    }
 }
 
 impl ScannerMode {

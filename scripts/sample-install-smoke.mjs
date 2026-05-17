@@ -46,7 +46,7 @@ try {
   if (!existsSync(wasmPack)) {
     throw new Error(`wasm-pack not found; set WASM_PACK or install it at ${wasmPack}`);
   }
-  run(wasmPack, ["build", path.join(root, "crates", "sieve-wasm"), "--release", "--target", "bundler"], root);
+  run(wasmPack, ["build", path.join(root, "crates", "sieve-wasm"), "--release", "--target", "nodejs"], root);
   runNpm(["run", "build"], path.join(root, "packages", "nextjs"));
 
   const wasmSource = path.join(root, "crates", "sieve-wasm", "pkg");
@@ -62,7 +62,6 @@ try {
   const [{ filename }] = JSON.parse(packJson);
   const nextTarball = path.join(tmp, filename);
 
-  const app = path.join(tmp, "app");
   writeFileSync(
     path.join(tmp, "package.json"),
     JSON.stringify({ private: true, type: "module" }, null, 2),

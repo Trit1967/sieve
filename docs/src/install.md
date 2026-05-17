@@ -4,7 +4,7 @@
 
 ```toml
 [dependencies]
-sieve-core = "0.1"
+sieve-core = "0.3"
 ```
 
 ## Python

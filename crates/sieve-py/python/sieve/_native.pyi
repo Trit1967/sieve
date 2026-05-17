@@ -2,7 +2,7 @@
 """Type stubs for sieve._native (pyo3-backed core)."""
 
 from __future__ import annotations
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 __version__: str
 
@@ -21,6 +21,24 @@ Category = Literal[
     "ConversationDrift",
     "Unknown",
 ]
+MessageRole = Literal["system", "developer", "user", "assistant", "tool"]
+DocumentSourceKind = Literal[
+    "rag_chunk",
+    "web_page",
+    "email",
+    "pdf",
+    "ocr",
+    "code_review",
+    "issue_comment",
+    "tool_output",
+    "other",
+]
+
+
+class ChatMessage(TypedDict, total=False):
+    role: MessageRole
+    content: str
+    name: str
 
 
 class Finding:
@@ -67,6 +85,34 @@ class CommitmentViolation:
     def confidence(self) -> float: ...
 
 
+class ConversationState:
+    def __init__(
+        self,
+        turns_seen: int = ...,
+        prior_flags: int = ...,
+        prior_blocks: int = ...,
+        authority_claims: int = ...,
+        persona_shift_attempts: int = ...,
+        fake_memory_claims: int = ...,
+    ) -> None: ...
+    @property
+    def turns_seen(self) -> int: ...
+    @property
+    def prior_flags(self) -> int: ...
+    @property
+    def prior_blocks(self) -> int: ...
+    @property
+    def authority_claims(self) -> int: ...
+    @property
+    def persona_shift_attempts(self) -> int: ...
+    @property
+    def fake_memory_claims(self) -> int: ...
+    def reset(self) -> None: ...
+    def to_json(self) -> str: ...
+    @staticmethod
+    def from_json(s: str) -> "ConversationState": ...
+
+
 class Verdict:
     @property
     def decision(self) -> Decision: ...
@@ -97,3 +143,18 @@ class Scanner:
     def scan_output(
         self, system_prompt: str, output: str, canary_state: CanaryState
     ) -> Verdict: ...
+    def scan_messages(self, messages: list[ChatMessage]) -> Verdict: ...
+    def scan_tool_call(self, name: str, arguments_json: str) -> Verdict: ...
+    def scan_tool_result(self, name: str, content: str) -> Verdict: ...
+    def scan_retrieved_document(
+        self,
+        source_kind: DocumentSourceKind,
+        content: str,
+        source_id: str | None = ...,
+    ) -> Verdict: ...
+    def scan_turn(
+        self, state: ConversationState, messages: list[ChatMessage]
+    ) -> Verdict: ...
+
+
+def instrument_system_prompt(system_prompt: str) -> tuple[str, CanaryState]: ...

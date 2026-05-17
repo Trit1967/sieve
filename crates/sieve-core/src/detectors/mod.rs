@@ -10,12 +10,22 @@
 //! - Phase 4: `EncodingScanner` (base64 / hex / rot13).
 //! - Phase 5: `HeuristicScorer` (instruction density, script-switch, entropy).
 
+pub mod anomaly;
+pub mod differential;
 pub mod encoding;
 pub mod heuristics;
 pub mod patterns;
+pub mod semantic;
+pub mod slot;
+pub mod spotlight;
 pub mod unicode;
 
+pub use anomaly::{AnomalyOpts, AnomalyScorer};
+pub use differential::{DifferentialDetector, DifferentialOpts};
 pub use encoding::{EncodingOpts, EncodingScanner};
 pub use heuristics::{HeuristicOpts, HeuristicScorer};
 pub use patterns::{PatternOpts, PatternScanner};
+pub use semantic::{SemanticOpts, SemanticScorer};
+pub use slot::{SlotMatcher, SlotOpts};
+pub use spotlight::{SpotlightDetector, SpotlightOpts};
 pub use unicode::{NormalizationResult, UnicodeNormalizer, UnicodeOpts};

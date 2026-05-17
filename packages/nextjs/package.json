@@ -1,28 +1,28 @@
 {
   "name": "@sieve/nextjs",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Next.js + Vercel AI SDK helpers for sieve (vendor-neutral prompt injection defense)",
   "license": "(MIT OR Apache-2.0)",
   "repository": { "type": "git", "url": "git+https://github.com/Trit1967/sieve.git" },
   "homepage": "https://github.com/Trit1967/sieve",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
     "./openai": {
       "types": "./dist/openai.d.ts",
-      "import": "./dist/openai.mjs",
+      "import": "./dist/openai.js",
       "require": "./dist/openai.cjs"
     },
     "./ai-sdk": {
       "types": "./dist/ai-sdk.d.ts",
-      "import": "./dist/ai-sdk.mjs",
+      "import": "./dist/ai-sdk.js",
       "require": "./dist/ai-sdk.cjs"
     }
   },
@@ -34,7 +34,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sieve/wasm": "^0.1.0"
+    "@sieve/wasm": "^0.3.0"
   },
   "peerDependenciesMeta": {
     "@sieve/wasm": { "optional": false }

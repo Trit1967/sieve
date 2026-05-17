@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+[package]
+name = "rust-agent"
+version = "0.0.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+sieve-core = { path = "../../crates/sieve-core", version = "0.3.0" }

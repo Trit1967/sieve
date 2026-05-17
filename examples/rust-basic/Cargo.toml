@@ -9,4 +9,4 @@ publish = false
 
 [dependencies]
 # version pin satisfies cargo-deny's `wildcards = "deny"` rule.
-sieve-core = { path = "../../crates/sieve-core", version = "0.1.0" }
+sieve-core = { path = "../../crates/sieve-core", version = "0.3.0" }

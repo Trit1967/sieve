@@ -30,25 +30,36 @@
 #![warn(clippy::pedantic, missing_docs, rust_2018_idioms)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod agent;
 pub mod canary;
 pub mod classifier;
 pub mod commitments;
 pub mod context;
 pub mod detectors;
 pub mod error;
+pub mod judge;
 pub mod scanner;
+pub mod streaming;
 pub mod verdict;
 
+pub use agent::{
+    ChatMessage, ConversationState, DocumentSourceKind, MessageRole, RetrievedDocument, ToolCall,
+    ToolResult,
+};
 pub use canary::{detect_leaks, inject_system_prompt, Canary};
 pub use classifier::{ClassificationResult, Classifier, NoopClassifier};
 pub use commitments::{extract_commitments, verify_commitments, Commitment};
 pub use context::{ContextAnalyzer, ContextOpts, Instruction, InstructionKind, SystemPrompt};
 pub use detectors::{
-    EncodingOpts, EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult,
-    PatternOpts, PatternScanner, UnicodeNormalizer, UnicodeOpts,
+    AnomalyOpts, AnomalyScorer, DifferentialDetector, DifferentialOpts, EncodingOpts,
+    EncodingScanner, HeuristicOpts, HeuristicScorer, NormalizationResult, PatternOpts,
+    PatternScanner, SemanticOpts, SemanticScorer, SlotMatcher, SlotOpts, SpotlightDetector,
+    SpotlightOpts, UnicodeNormalizer, UnicodeOpts,
 };
 pub use error::{Error, Result};
-pub use scanner::{Scanner, ScannerBuilder};
+pub use judge::{Judgment, LlmJudge, NoopJudge};
+pub use scanner::{Scanner, ScannerBuilder, ScannerMode};
+pub use streaming::{IncrementalVerdict, StreamingOutputScanner};
 pub use verdict::{
     CanaryLeak, CanaryState, Category, CommitmentViolation, Decision, Finding, Severity, Verdict,
 };

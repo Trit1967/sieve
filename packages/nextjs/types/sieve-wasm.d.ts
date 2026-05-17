@@ -41,15 +41,64 @@ declare module "@sieve/wasm" {
     latency_us: number;
   }
 
+  export interface InstrumentedPrompt {
+    system_prompt: string;
+    canary_state: { canaries: string[] };
+  }
+
+  export type ScannerMode = "strict" | "balanced" | "monitor";
+  export type MessageRole = "system" | "developer" | "user" | "assistant" | "tool";
+  export type DocumentSourceKind =
+    | "rag_chunk"
+    | "web_page"
+    | "email"
+    | "pdf"
+    | "ocr"
+    | "code_review"
+    | "issue_comment"
+    | "tool_output"
+    | "other";
+
+  export interface ChatMessage {
+    role: MessageRole;
+    content: string;
+    name?: string;
+  }
+
+  export interface ConversationState {
+    turns_seen: number;
+    prior_flags: number;
+    prior_blocks: number;
+    authority_claims: number;
+    persona_shift_attempts: number;
+    fake_memory_claims: number;
+  }
+
+  export interface TurnScanResult {
+    verdict: Verdict;
+    state: ConversationState;
+  }
+
   export class Scanner {
-    constructor();
+    constructor(mode?: ScannerMode);
     scanInput(systemPrompt: string, userInput: string): Verdict;
+    instrumentSystemPrompt(systemPrompt: string): InstrumentedPrompt;
     scanOutput(
       systemPrompt: string,
       output: string,
       canaryState: { canaries: string[] } | string,
     ): Verdict;
+    scanMessages(messages: ChatMessage[]): Verdict;
+    scanToolCall(name: string, argumentsJson: string): Verdict;
+    scanToolResult(name: string, content: string): Verdict;
+    scanRetrievedDocument(
+      sourceKind: DocumentSourceKind,
+      content: string,
+      sourceId?: string,
+    ): Verdict;
+    scanTurn(state: ConversationState, messages: ChatMessage[]): TurnScanResult;
   }
 
+  export function newConversationState(): ConversationState;
   export const SIEVE_WASM_VERSION: () => string;
 }

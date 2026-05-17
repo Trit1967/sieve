@@ -178,7 +178,7 @@ jobs:
         run: python -m pytest python/sieve/tests/ -q
 
   nextjs-build:
-    name: '@sieve/nextjs build + vitest'
+    name: '@sieve/nextjs build + 1000-case canary plumbing'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -194,3 +194,20 @@ jobs:
           npm install --no-audit --no-fund --legacy-peer-deps
           npm run typecheck
           npm test
+
+  sample-install-smoke:
+    name: sample install smoke (local package shape)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - working-directory: packages/nextjs
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Pack and import local packages in a clean temp app
+        run: node scripts/sample-install-smoke.mjs

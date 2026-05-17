@@ -20,9 +20,68 @@ use serde_wasm_bindgen::Serializer;
 use wasm_bindgen::prelude::*;
 
 use sieve_core::{
-    inject_system_prompt, CanaryState as CoreCanaryState, Scanner as CoreScanner,
-    ScannerMode as CoreScannerMode,
+    inject_system_prompt, CanaryState as CoreCanaryState, ChatMessage as CoreChatMessage,
+    DocumentSourceKind as CoreDocumentSourceKind, MessageRole as CoreMessageRole,
+    RetrievedDocument as CoreRetrievedDocument, Scanner as CoreScanner,
+    ScannerMode as CoreScannerMode, ToolCall as CoreToolCall, ToolResult as CoreToolResult,
 };
+
+#[derive(Deserialize)]
+struct JsChatMessage {
+    role: String,
+    content: String,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+fn parse_message_role(role: &str) -> Result<CoreMessageRole, JsError> {
+    match role.trim().to_ascii_lowercase().as_str() {
+        "system" => Ok(CoreMessageRole::System),
+        "developer" => Ok(CoreMessageRole::Developer),
+        "user" => Ok(CoreMessageRole::User),
+        "assistant" => Ok(CoreMessageRole::Assistant),
+        "tool" => Ok(CoreMessageRole::Tool),
+        _ => Err(JsError::new(
+            "role must be system|developer|user|assistant|tool",
+        )),
+    }
+}
+
+fn parse_document_source_kind(kind: &str) -> Result<CoreDocumentSourceKind, JsError> {
+    match kind.trim().to_ascii_lowercase().replace('-', "_").as_str() {
+        "rag_chunk" | "rag" => Ok(CoreDocumentSourceKind::RagChunk),
+        "web_page" | "web" | "page" => Ok(CoreDocumentSourceKind::WebPage),
+        "email" => Ok(CoreDocumentSourceKind::Email),
+        "pdf" => Ok(CoreDocumentSourceKind::Pdf),
+        "ocr" => Ok(CoreDocumentSourceKind::Ocr),
+        "code_review" => Ok(CoreDocumentSourceKind::CodeReview),
+        "issue_comment" | "github_comment" => Ok(CoreDocumentSourceKind::IssueComment),
+        "tool_output" | "tool_result" => Ok(CoreDocumentSourceKind::ToolOutput),
+        "other" | "document" => Ok(CoreDocumentSourceKind::Other),
+        _ => Err(JsError::new(
+            "sourceKind must be rag_chunk|web_page|email|pdf|ocr|code_review|issue_comment|tool_output|other",
+        )),
+    }
+}
+
+fn borrowed_chat_messages(messages: &[JsChatMessage]) -> Result<Vec<CoreChatMessage<'_>>, JsError> {
+    messages
+        .iter()
+        .map(|message| {
+            Ok(CoreChatMessage {
+                role: parse_message_role(&message.role)?,
+                content: &message.content,
+                name: message.name.as_deref(),
+            })
+        })
+        .collect()
+}
+
+fn serialize_verdict(verdict: &sieve_core::Verdict) -> Result<JsValue, JsError> {
+    verdict
+        .serialize(&Serializer::json_compatible())
+        .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
+}
 
 /// Scanner handle exposed to JavaScript.
 #[wasm_bindgen]
@@ -70,8 +129,7 @@ impl Scanner {
         let v = self.inner.scan_input(system_prompt, user_input);
         // Preserve maps as plain JS objects (default behavior); the canonical
         // serializer matches the JSON wire format produced by the Rust core.
-        v.serialize(&Serializer::json_compatible())
-            .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
+        serialize_verdict(&v)
     }
 
     /// Instrument a system prompt with a fresh canary.
@@ -121,8 +179,71 @@ impl Scanner {
                 .map_err(|e| JsError::new(&format!("canary_state object: {e}")))?
         };
         let v = self.inner.scan_output(system_prompt, output, &cs);
-        v.serialize(&Serializer::json_compatible())
-            .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
+        serialize_verdict(&v)
+    }
+
+    /// Scan a role-separated message list without collapsing trust boundaries.
+    ///
+    /// `messages` must be an array of `{ role, content, name? }` objects.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if messages cannot be deserialized, a role is
+    /// invalid, or the verdict cannot be serialized.
+    #[wasm_bindgen(js_name = scanMessages)]
+    pub fn scan_messages(&self, messages: JsValue) -> Result<JsValue, JsError> {
+        let owned: Vec<JsChatMessage> = serde_wasm_bindgen::from_value(messages)
+            .map_err(|e| JsError::new(&format!("messages: {e}")))?;
+        let borrowed = borrowed_chat_messages(&owned)?;
+        let verdict = self.inner.scan_messages(&borrowed);
+        serialize_verdict(&verdict)
+    }
+
+    /// Scan a structured tool call name and raw JSON arguments.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if the verdict cannot be serialized.
+    #[wasm_bindgen(js_name = scanToolCall)]
+    pub fn scan_tool_call(&self, name: &str, arguments_json: &str) -> Result<JsValue, JsError> {
+        let verdict = self.inner.scan_tool_call(&CoreToolCall {
+            name,
+            arguments_json,
+        });
+        serialize_verdict(&verdict)
+    }
+
+    /// Scan untrusted tool output/result content.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if the verdict cannot be serialized.
+    #[wasm_bindgen(js_name = scanToolResult)]
+    pub fn scan_tool_result(&self, name: &str, content: &str) -> Result<JsValue, JsError> {
+        let verdict = self
+            .inner
+            .scan_tool_result(&CoreToolResult { name, content });
+        serialize_verdict(&verdict)
+    }
+
+    /// Scan untrusted retrieved content such as RAG chunks, web pages, emails,
+    /// PDF/OCR text, and issue comments.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if the source kind is invalid or the verdict cannot
+    /// be serialized.
+    #[wasm_bindgen(js_name = scanRetrievedDocument)]
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn scan_retrieved_document(
+        &self,
+        source_kind: &str,
+        content: &str,
+        source_id: Option<String>,
+    ) -> Result<JsValue, JsError> {
+        let kind = parse_document_source_kind(source_kind)?;
+        let verdict = self.inner.scan_retrieved_document(&CoreRetrievedDocument {
+            source_kind: kind,
+            source_id: source_id.as_deref(),
+            content,
+        });
+        serialize_verdict(&verdict)
     }
 }
 
@@ -133,5 +254,5 @@ pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
-// Re-export Serialize so the closure above can call it.
-use serde::Serialize as _;
+// Re-export traits so helper serializers and `JsChatMessage` derive work.
+use serde::{Deserialize, Serialize as _};

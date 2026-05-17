@@ -30,6 +30,7 @@
 #![warn(clippy::pedantic, missing_docs, rust_2018_idioms)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod agent;
 pub mod canary;
 pub mod classifier;
 pub mod commitments;
@@ -41,6 +42,10 @@ pub mod scanner;
 pub mod streaming;
 pub mod verdict;
 
+pub use agent::{
+    ChatMessage, ConversationState, DocumentSourceKind, MessageRole, RetrievedDocument, ToolCall,
+    ToolResult,
+};
 pub use canary::{detect_leaks, inject_system_prompt, Canary};
 pub use classifier::{ClassificationResult, Classifier, NoopClassifier};
 pub use commitments::{extract_commitments, verify_commitments, Commitment};

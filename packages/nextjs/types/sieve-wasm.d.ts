@@ -47,6 +47,23 @@ declare module "@sieve/wasm" {
   }
 
   export type ScannerMode = "strict" | "balanced" | "monitor";
+  export type MessageRole = "system" | "developer" | "user" | "assistant" | "tool";
+  export type DocumentSourceKind =
+    | "rag_chunk"
+    | "web_page"
+    | "email"
+    | "pdf"
+    | "ocr"
+    | "code_review"
+    | "issue_comment"
+    | "tool_output"
+    | "other";
+
+  export interface ChatMessage {
+    role: MessageRole;
+    content: string;
+    name?: string;
+  }
 
   export class Scanner {
     constructor(mode?: ScannerMode);
@@ -56,6 +73,14 @@ declare module "@sieve/wasm" {
       systemPrompt: string,
       output: string,
       canaryState: { canaries: string[] } | string,
+    ): Verdict;
+    scanMessages(messages: ChatMessage[]): Verdict;
+    scanToolCall(name: string, argumentsJson: string): Verdict;
+    scanToolResult(name: string, content: string): Verdict;
+    scanRetrievedDocument(
+      sourceKind: DocumentSourceKind,
+      content: string,
+      sourceId?: string,
     ): Verdict;
   }
 

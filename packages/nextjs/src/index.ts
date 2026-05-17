@@ -78,6 +78,25 @@ export interface InstrumentedPrompt {
   canary_state: CanaryState;
 }
 
+export type MessageRole = "system" | "developer" | "user" | "assistant" | "tool";
+
+export interface ChatMessage {
+  role: MessageRole;
+  content: string;
+  name?: string;
+}
+
+export type DocumentSourceKind =
+  | "rag_chunk"
+  | "web_page"
+  | "email"
+  | "pdf"
+  | "ocr"
+  | "code_review"
+  | "issue_comment"
+  | "tool_output"
+  | "other";
+
 /**
  * Stateless input-only scan.
  *
@@ -112,6 +131,40 @@ export async function sieveCheckOutput(
 ): Promise<Verdict> {
   const s = await getScanner();
   return s.scanOutput(systemPrompt, output, canaryState) as Verdict;
+}
+
+/** Scan a role-separated chat transcript without flattening trust boundaries. */
+export async function sieveCheckMessages(messages: ChatMessage[]): Promise<Verdict> {
+  const s = await getScanner();
+  return s.scanMessages(messages) as Verdict;
+}
+
+/** Scan a tool/function call name and raw JSON argument payload. */
+export async function sieveCheckToolCall(
+  name: string,
+  argumentsJson: string,
+): Promise<Verdict> {
+  const s = await getScanner();
+  return s.scanToolCall(name, argumentsJson) as Verdict;
+}
+
+/** Scan untrusted tool/function output before adding it to model context. */
+export async function sieveCheckToolResult(
+  name: string,
+  content: string,
+): Promise<Verdict> {
+  const s = await getScanner();
+  return s.scanToolResult(name, content) as Verdict;
+}
+
+/** Scan untrusted retrieved content before adding it to a RAG prompt. */
+export async function sieveCheckRetrievedDocument(
+  sourceKind: DocumentSourceKind,
+  content: string,
+  sourceId?: string,
+): Promise<Verdict> {
+  const s = await getScanner();
+  return s.scanRetrievedDocument(sourceKind, content, sourceId) as Verdict;
 }
 
 /** Thrown by SDK wrappers when a verdict's decision is `"Block"`. */

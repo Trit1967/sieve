@@ -18,14 +18,17 @@
 
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyAny, PyDict};
 use pyo3::wrap_pyfunction;
 
 use sieve_core::{
     inject_system_prompt, CanaryLeak as CoreCanaryLeak, CanaryState as CoreCanaryState,
-    Category as CoreCategory, CommitmentViolation as CoreCommitmentViolation,
-    Decision as CoreDecision, Finding as CoreFinding, Scanner as CoreScanner,
-    ScannerMode as CoreScannerMode, Severity as CoreSeverity, Verdict as CoreVerdict,
+    Category as CoreCategory, ChatMessage as CoreChatMessage,
+    CommitmentViolation as CoreCommitmentViolation, Decision as CoreDecision,
+    DocumentSourceKind as CoreDocumentSourceKind, Finding as CoreFinding,
+    MessageRole as CoreMessageRole, RetrievedDocument as CoreRetrievedDocument,
+    Scanner as CoreScanner, ScannerMode as CoreScannerMode, Severity as CoreSeverity,
+    ToolCall as CoreToolCall, ToolResult as CoreToolResult, Verdict as CoreVerdict,
 };
 
 // ---- Decision / Severity / Category ------------------------------------
@@ -61,6 +64,72 @@ fn category_str(c: CoreCategory) -> &'static str {
         CoreCategory::ConversationDrift => "ConversationDrift",
         _ => "Unknown",
     }
+}
+
+fn parse_message_role(role: &str) -> PyResult<CoreMessageRole> {
+    match role.trim().to_ascii_lowercase().as_str() {
+        "system" => Ok(CoreMessageRole::System),
+        "developer" => Ok(CoreMessageRole::Developer),
+        "user" => Ok(CoreMessageRole::User),
+        "assistant" => Ok(CoreMessageRole::Assistant),
+        "tool" => Ok(CoreMessageRole::Tool),
+        _ => Err(PyValueError::new_err(
+            "role must be system|developer|user|assistant|tool",
+        )),
+    }
+}
+
+fn parse_document_source_kind(kind: &str) -> PyResult<CoreDocumentSourceKind> {
+    match kind.trim().to_ascii_lowercase().replace('-', "_").as_str() {
+        "rag_chunk" | "rag" => Ok(CoreDocumentSourceKind::RagChunk),
+        "web_page" | "web" | "page" => Ok(CoreDocumentSourceKind::WebPage),
+        "email" => Ok(CoreDocumentSourceKind::Email),
+        "pdf" => Ok(CoreDocumentSourceKind::Pdf),
+        "ocr" => Ok(CoreDocumentSourceKind::Ocr),
+        "code_review" => Ok(CoreDocumentSourceKind::CodeReview),
+        "issue_comment" | "github_comment" => Ok(CoreDocumentSourceKind::IssueComment),
+        "tool_output" | "tool_result" => Ok(CoreDocumentSourceKind::ToolOutput),
+        "other" | "document" => Ok(CoreDocumentSourceKind::Other),
+        _ => Err(PyValueError::new_err(
+            "source_kind must be rag_chunk|web_page|email|pdf|ocr|code_review|issue_comment|tool_output|other",
+        )),
+    }
+}
+
+struct OwnedChatMessage {
+    role: CoreMessageRole,
+    content: String,
+    name: Option<String>,
+}
+
+fn parse_chat_messages(messages: &Bound<'_, PyAny>) -> PyResult<Vec<OwnedChatMessage>> {
+    let mut out = Vec::new();
+    for item in messages.try_iter()? {
+        let item = item?;
+        let role = item.get_item("role")?.extract::<String>()?;
+        let content = item.get_item("content")?.extract::<String>()?;
+        let name = match item.get_item("name") {
+            Ok(value) if !value.is_none() => Some(value.extract::<String>()?),
+            _ => None,
+        };
+        out.push(OwnedChatMessage {
+            role: parse_message_role(&role)?,
+            content,
+            name,
+        });
+    }
+    Ok(out)
+}
+
+fn borrowed_chat_messages(messages: &[OwnedChatMessage]) -> Vec<CoreChatMessage<'_>> {
+    messages
+        .iter()
+        .map(|message| CoreChatMessage {
+            role: message.role,
+            content: &message.content,
+            name: message.name.as_deref(),
+        })
+        .collect()
 }
 
 // ---- Finding -----------------------------------------------------------
@@ -319,6 +388,47 @@ impl Scanner {
                 .inner
                 .scan_output(system_prompt, output, &canary_state.inner),
         }
+    }
+
+    fn scan_messages(&self, messages: &Bound<'_, PyAny>) -> PyResult<Verdict> {
+        let owned = parse_chat_messages(messages)?;
+        let borrowed = borrowed_chat_messages(&owned);
+        Ok(Verdict {
+            inner: self.inner.scan_messages(&borrowed),
+        })
+    }
+
+    fn scan_tool_call(&self, name: &str, arguments_json: &str) -> Verdict {
+        Verdict {
+            inner: self.inner.scan_tool_call(&CoreToolCall {
+                name,
+                arguments_json,
+            }),
+        }
+    }
+
+    fn scan_tool_result(&self, name: &str, content: &str) -> Verdict {
+        Verdict {
+            inner: self
+                .inner
+                .scan_tool_result(&CoreToolResult { name, content }),
+        }
+    }
+
+    #[pyo3(signature = (source_kind, content, source_id=None))]
+    fn scan_retrieved_document(
+        &self,
+        source_kind: &str,
+        content: &str,
+        source_id: Option<&str>,
+    ) -> PyResult<Verdict> {
+        Ok(Verdict {
+            inner: self.inner.scan_retrieved_document(&CoreRetrievedDocument {
+                source_kind: parse_document_source_kind(source_kind)?,
+                source_id,
+                content,
+            }),
+        })
     }
 
     fn __repr__(&self) -> String {

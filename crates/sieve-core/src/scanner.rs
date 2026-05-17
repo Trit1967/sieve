@@ -324,6 +324,10 @@ impl Scanner {
             }),
         }
     }
+
+    pub(crate) fn mode(&self) -> ScannerMode {
+        self.inner.mode
+    }
 }
 
 /// Builder for [`Scanner`].
@@ -648,7 +652,7 @@ fn decide(findings: &[Finding]) -> (Decision, f32) {
     decide_for_mode(findings, ScannerMode::Strict)
 }
 
-fn decide_for_mode(findings: &[Finding], mode: ScannerMode) -> (Decision, f32) {
+pub(crate) fn decide_for_mode(findings: &[Finding], mode: ScannerMode) -> (Decision, f32) {
     if findings.is_empty() {
         return (Decision::Allow, 0.0);
     }

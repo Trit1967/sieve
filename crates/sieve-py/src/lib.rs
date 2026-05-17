@@ -24,8 +24,8 @@ use pyo3::wrap_pyfunction;
 use sieve_core::{
     inject_system_prompt, CanaryLeak as CoreCanaryLeak, CanaryState as CoreCanaryState,
     Category as CoreCategory, ChatMessage as CoreChatMessage,
-    CommitmentViolation as CoreCommitmentViolation, Decision as CoreDecision,
-    DocumentSourceKind as CoreDocumentSourceKind, Finding as CoreFinding,
+    CommitmentViolation as CoreCommitmentViolation, ConversationState as CoreConversationState,
+    Decision as CoreDecision, DocumentSourceKind as CoreDocumentSourceKind, Finding as CoreFinding,
     MessageRole as CoreMessageRole, RetrievedDocument as CoreRetrievedDocument,
     Scanner as CoreScanner, ScannerMode as CoreScannerMode, Severity as CoreSeverity,
     ToolCall as CoreToolCall, ToolResult as CoreToolResult, Verdict as CoreVerdict,
@@ -258,6 +258,99 @@ impl CommitmentViolation {
     }
 }
 
+// ---- ConversationState -------------------------------------------------
+
+#[pyclass(name = "ConversationState", module = "sieve._native")]
+#[derive(Clone)]
+struct ConversationState {
+    inner: CoreConversationState,
+}
+
+#[pymethods]
+impl ConversationState {
+    #[new]
+    #[pyo3(signature = (
+        turns_seen=0,
+        prior_flags=0,
+        prior_blocks=0,
+        authority_claims=0,
+        persona_shift_attempts=0,
+        fake_memory_claims=0
+    ))]
+    fn new(
+        turns_seen: u32,
+        prior_flags: u32,
+        prior_blocks: u32,
+        authority_claims: u32,
+        persona_shift_attempts: u32,
+        fake_memory_claims: u32,
+    ) -> Self {
+        Self {
+            inner: CoreConversationState {
+                turns_seen,
+                prior_flags,
+                prior_blocks,
+                authority_claims,
+                persona_shift_attempts,
+                fake_memory_claims,
+            },
+        }
+    }
+
+    #[getter]
+    fn turns_seen(&self) -> u32 {
+        self.inner.turns_seen
+    }
+
+    #[getter]
+    fn prior_flags(&self) -> u32 {
+        self.inner.prior_flags
+    }
+
+    #[getter]
+    fn prior_blocks(&self) -> u32 {
+        self.inner.prior_blocks
+    }
+
+    #[getter]
+    fn authority_claims(&self) -> u32 {
+        self.inner.authority_claims
+    }
+
+    #[getter]
+    fn persona_shift_attempts(&self) -> u32 {
+        self.inner.persona_shift_attempts
+    }
+
+    #[getter]
+    fn fake_memory_claims(&self) -> u32 {
+        self.inner.fake_memory_claims
+    }
+
+    fn reset(&mut self) {
+        self.inner.reset();
+    }
+
+    fn to_json(&self) -> PyResult<String> {
+        serde_json::to_string(&self.inner)
+            .map_err(|e| PyRuntimeError::new_err(format!("serialize: {e}")))
+    }
+
+    #[staticmethod]
+    fn from_json(s: &str) -> PyResult<Self> {
+        serde_json::from_str::<CoreConversationState>(s)
+            .map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(format!("deserialize: {e}")))
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "ConversationState(turns_seen={}, prior_flags={}, prior_blocks={})",
+            self.inner.turns_seen, self.inner.prior_flags, self.inner.prior_blocks,
+        )
+    }
+}
+
 // ---- Verdict -----------------------------------------------------------
 
 #[pyclass(name = "Verdict", module = "sieve._native", frozen)]
@@ -431,6 +524,18 @@ impl Scanner {
         })
     }
 
+    fn scan_turn(
+        &self,
+        mut state: PyRefMut<'_, ConversationState>,
+        messages: &Bound<'_, PyAny>,
+    ) -> PyResult<Verdict> {
+        let owned = parse_chat_messages(messages)?;
+        let borrowed = borrowed_chat_messages(&owned);
+        Ok(Verdict {
+            inner: self.inner.scan_turn(&mut state.inner, &borrowed),
+        })
+    }
+
     fn __repr__(&self) -> String {
         "Scanner(default)".into()
     }
@@ -458,6 +563,7 @@ fn _native(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CanaryState>()?;
     m.add_class::<CanaryLeak>()?;
     m.add_class::<CommitmentViolation>()?;
+    m.add_class::<ConversationState>()?;
     m.add_function(wrap_pyfunction!(instrument_system_prompt, m)?)?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     Ok(())

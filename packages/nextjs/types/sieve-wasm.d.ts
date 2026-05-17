@@ -65,6 +65,20 @@ declare module "@sieve/wasm" {
     name?: string;
   }
 
+  export interface ConversationState {
+    turns_seen: number;
+    prior_flags: number;
+    prior_blocks: number;
+    authority_claims: number;
+    persona_shift_attempts: number;
+    fake_memory_claims: number;
+  }
+
+  export interface TurnScanResult {
+    verdict: Verdict;
+    state: ConversationState;
+  }
+
   export class Scanner {
     constructor(mode?: ScannerMode);
     scanInput(systemPrompt: string, userInput: string): Verdict;
@@ -82,7 +96,9 @@ declare module "@sieve/wasm" {
       content: string,
       sourceId?: string,
     ): Verdict;
+    scanTurn(state: ConversationState, messages: ChatMessage[]): TurnScanResult;
   }
 
+  export function newConversationState(): ConversationState;
   export const SIEVE_WASM_VERSION: () => string;
 }

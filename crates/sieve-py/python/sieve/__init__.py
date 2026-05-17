@@ -19,6 +19,7 @@ from ._native import (
     CanaryState,
     CanaryLeak,
     CommitmentViolation,
+    ConversationState,
     instrument_system_prompt,
     __version__,
 )
@@ -41,6 +42,7 @@ __all__ = [
     "CanaryState",
     "CanaryLeak",
     "CommitmentViolation",
+    "ConversationState",
     "instrument_system_prompt",
     "PromptInjectionBlocked",
     "__version__",

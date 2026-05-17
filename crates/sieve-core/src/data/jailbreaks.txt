@@ -90,6 +90,7 @@ in this scenario you
 in this game you
 play the role of
 play a character
+i want you to act as a linux terminal
 
 # ---- DAN / jailbreak persona names ---------------------------------
 do anything now

@@ -6,6 +6,7 @@ members = [
     "crates/sieve-cli",
     "crates/sieve-py",
     "crates/sieve-wasm",
+    "examples/rust-agent",
     "examples/rust-basic",
     "benchmarks/harness",
 ]

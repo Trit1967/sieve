@@ -86,6 +86,20 @@ export interface ChatMessage {
   name?: string;
 }
 
+export interface ConversationState {
+  turns_seen: number;
+  prior_flags: number;
+  prior_blocks: number;
+  authority_claims: number;
+  persona_shift_attempts: number;
+  fake_memory_claims: number;
+}
+
+export interface TurnScanResult {
+  verdict: Verdict;
+  state: ConversationState;
+}
+
 export type DocumentSourceKind =
   | "rag_chunk"
   | "web_page"
@@ -165,6 +179,33 @@ export async function sieveCheckRetrievedDocument(
 ): Promise<Verdict> {
   const s = await getScanner();
   return s.scanRetrievedDocument(sourceKind, content, sourceId) as Verdict;
+}
+
+/** Create an empty caller-owned conversation state object. */
+export function createConversationState(): ConversationState {
+  const maybeNewState = (sieveWasm as {
+    newConversationState?: () => ConversationState;
+  }).newConversationState;
+  if (typeof maybeNewState === "function") {
+    return maybeNewState();
+  }
+  return {
+    turns_seen: 0,
+    prior_flags: 0,
+    prior_blocks: 0,
+    authority_claims: 0,
+    persona_shift_attempts: 0,
+    fake_memory_claims: 0,
+  };
+}
+
+/** Scan one structured conversation turn and return the updated state. */
+export async function sieveCheckTurn(
+  state: ConversationState,
+  messages: ChatMessage[],
+): Promise<TurnScanResult> {
+  const s = await getScanner();
+  return s.scanTurn(state, messages) as TurnScanResult;
 }
 
 /** Thrown by SDK wrappers when a verdict's decision is `"Block"`. */

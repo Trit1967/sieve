@@ -21,9 +21,10 @@ use wasm_bindgen::prelude::*;
 
 use sieve_core::{
     inject_system_prompt, CanaryState as CoreCanaryState, ChatMessage as CoreChatMessage,
-    DocumentSourceKind as CoreDocumentSourceKind, MessageRole as CoreMessageRole,
-    RetrievedDocument as CoreRetrievedDocument, Scanner as CoreScanner,
-    ScannerMode as CoreScannerMode, ToolCall as CoreToolCall, ToolResult as CoreToolResult,
+    ConversationState as CoreConversationState, DocumentSourceKind as CoreDocumentSourceKind,
+    MessageRole as CoreMessageRole, RetrievedDocument as CoreRetrievedDocument,
+    Scanner as CoreScanner, ScannerMode as CoreScannerMode, ToolCall as CoreToolCall,
+    ToolResult as CoreToolResult,
 };
 
 #[derive(Deserialize)]
@@ -245,6 +246,28 @@ impl Scanner {
         });
         serialize_verdict(&verdict)
     }
+
+    /// Scan a turn and return `{ verdict, state }` with updated caller-owned
+    /// conversation state.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if state or messages cannot be deserialized, a role
+    /// is invalid, or the output cannot be serialized.
+    #[wasm_bindgen(js_name = scanTurn)]
+    pub fn scan_turn(&self, state: JsValue, messages: JsValue) -> Result<JsValue, JsError> {
+        let mut state: CoreConversationState = serde_wasm_bindgen::from_value(state)
+            .map_err(|e| JsError::new(&format!("conversation state: {e}")))?;
+        let owned: Vec<JsChatMessage> = serde_wasm_bindgen::from_value(messages)
+            .map_err(|e| JsError::new(&format!("messages: {e}")))?;
+        let borrowed = borrowed_chat_messages(&owned)?;
+        let verdict = self.inner.scan_turn(&mut state, &borrowed);
+        let out = serde_json::json!({
+            "verdict": verdict,
+            "state": state,
+        });
+        out.serialize(&Serializer::json_compatible())
+            .map_err(|e| JsError::new(&format!("turn serialize: {e}")))
+    }
 }
 
 /// Crate version, exported as a top-level JS constant.
@@ -252,6 +275,17 @@ impl Scanner {
 #[must_use]
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+/// Return an empty caller-owned conversation state object.
+///
+/// # Errors
+/// Returns a `JsError` if serialization fails.
+#[wasm_bindgen(js_name = newConversationState)]
+pub fn new_conversation_state() -> Result<JsValue, JsError> {
+    CoreConversationState::new()
+        .serialize(&Serializer::json_compatible())
+        .map_err(|e| JsError::new(&format!("conversation state serialize: {e}")))
 }
 
 // Re-export traits so helper serializers and `JsChatMessage` derive work.

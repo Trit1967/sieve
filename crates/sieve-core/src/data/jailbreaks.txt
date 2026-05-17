@@ -857,6 +857,67 @@ uncensored persona
 your uncensored persona
 your raw persona
 
+# ---- Curl / webhook / markdown exfiltration -----------------------
+curl -x post
+curl -xpost
+curl --request post
+curl -d
+curl --data
+curl --data-binary
+curl --form
+curl -f content
+curl -f file
+curl -f secret
+curl -f token
+curl -f api_key
+curl -f api-key
+curl -f env
+curl -f content=<
+curl -f file=@
+curl -s -f
+curl -s --data
+curl -s --form
+post to webhook
+send to webhook
+forward to webhook
+upload to webhook
+webhook.site
+webhook endpoint
+requestbin
+interact.sh
+dpaste
+paste.rs
+pastebin
+webhook payload
+markdown image exfil
+markdown image
+image exfiltration
+evil.example
+collect?token
+collect?secret
+img src=
+hidden image beacon
+tracking pixel
+exfiltrate via image
+send api key to http
+send the api key to http
+send secret to http
+send the secret to http
+send token to http
+send the token to http
+upload .env
+read .env
+cat .env
+cat ~/.env
+cat /workspace
+cat /secrets
+cat /run/secrets
+environment variables to webhook
+env vars to webhook
+secrets to webhook
+api key to webhook
+token to webhook
+
 # =====================================================================
 # v0.3 — close the v0.2 long-tail (7 specific bypasses) and add new
 # DAN-family / "I will pretend" / authority-framing patterns

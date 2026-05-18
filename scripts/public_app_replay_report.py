@@ -62,10 +62,14 @@ COMMANDS = [
 ]
 
 
-def run_command(command: list[str]) -> tuple[int, str]:
+def run_command(command: list[str], corpus: Path | None) -> tuple[int, str]:
+    env = os.environ.copy()
+    if corpus is not None and "external_corpus_replay" in command:
+        env["SIEVE_REPLAY_CORPUS"] = str(corpus)
     proc = subprocess.run(
         command,
         cwd=ROOT,
+        env=env,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -91,16 +95,20 @@ def interesting_lines(output: str) -> list[str]:
     return keep
 
 
-def build_report(results: list[tuple[list[str], int, str]]) -> str:
+def build_report(results: list[tuple[list[str], int, str]], corpus: Path | None) -> str:
     now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
     lines = [
         "# Public App Replay Report",
         "",
         f"Generated: {now}",
+    ]
+    if corpus is not None:
+        lines.extend(["", f"Custom corpus: `{corpus}`"])
+    lines.extend([
         "",
         "| Gate | Status |",
         "| --- | --- |",
-    ]
+    ])
     for command, code, _ in results:
         name = command[command.index("--test") + 1]
         status = "PASS" if code == 0 else f"FAIL ({code})"
@@ -122,15 +130,25 @@ def build_report(results: list[tuple[list[str], int, str]]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--corpus",
+        type=Path,
+        help="Optional JSONL corpus path for external_corpus_replay.",
+    )
     parser.add_argument("--out", type=Path, help="Optional Markdown output path.")
     args = parser.parse_args()
+    corpus = None
+    if args.corpus:
+        corpus = args.corpus if args.corpus.is_absolute() else ROOT / args.corpus
+        if not corpus.exists():
+            parser.error(f"--corpus path does not exist: {corpus}")
 
     results = []
     for command in COMMANDS:
         print(f"running: {' '.join(command)}", file=sys.stderr)
-        results.append((command, *run_command(command)))
+        results.append((command, *run_command(command, corpus)))
 
-    report = build_report(results)
+    report = build_report(results, corpus)
     if args.out:
         out = args.out if args.out.is_absolute() else ROOT / args.out
         out.parent.mkdir(parents=True, exist_ok=True)

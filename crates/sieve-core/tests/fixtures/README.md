@@ -60,3 +60,22 @@ Remove-Item Env:\SIEVE_REPLAY_CORPUS
 The fixture is intentionally compact so downstream users can copy the schema
 and add their own application-specific traces without pulling in an app server
 or a hosted evaluation service.
+
+## `public_app_replay.schema.json`
+
+JSON Schema for a single JSONL row. Use it in editors or CI validators when
+maintaining an application-specific replay corpus. The Rust replay test also
+enforces the same critical invariants at runtime:
+
+- row IDs must be unique and non-empty.
+- `retrieved_document` rows must include `source_kind`.
+- `attack` rows must use `expected: "auto_block"`.
+- `benign` rows must use `expected: "not_hard_block"`.
+- unknown fields are rejected.
+
+## `public_app_replay_template.jsonl`
+
+A tiny copyable starter corpus with two attack rows and two benign rows. Replace
+the `source` labels and `text` fields with traces from your own public app, then
+run it with `SIEVE_REPLAY_CORPUS` or `scripts/public_app_replay_report.py
+--corpus`.

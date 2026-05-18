@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trit1967.github.io/sieve/schemas/public-app-replay.schema.json",
+  "title": "Sieve Public App Replay Corpus Row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "surface", "expected", "source", "text", "notes"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable unique case identifier."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["attack", "benign"],
+      "description": "Threat class for the row."
+    },
+    "surface": {
+      "type": "string",
+      "enum": ["input", "chat_user", "tool_call", "tool_result", "retrieved_document"],
+      "description": "Library trust boundary used for replay."
+    },
+    "expected": {
+      "type": "string",
+      "enum": ["auto_block", "not_hard_block"],
+      "description": "Public-app policy expectation."
+    },
+    "source_kind": {
+      "type": "string",
+      "enum": [
+        "rag_chunk",
+        "web_page",
+        "email",
+        "pdf",
+        "ocr",
+        "code_review",
+        "issue_comment",
+        "tool_output",
+        "other"
+      ],
+      "description": "Required when surface is retrieved_document."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Dataset, trace, or generator source label."
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Payload replayed through the selected surface."
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable reason this row exists."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "surface": { "const": "retrieved_document" } },
+        "required": ["surface"]
+      },
+      "then": { "required": ["source_kind"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "attack" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "expected": { "const": "auto_block" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "benign" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "expected": { "const": "not_hard_block" } }
+      }
+    }
+  ]
+}

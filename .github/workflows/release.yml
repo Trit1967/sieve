@@ -24,7 +24,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} -p sieve-core
+      - name: Publish sieve-core
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} -p sieve-core
+      - name: Wait for sieve-core to appear in crates.io index
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if cargo search sieve-core --limit 1 | grep -q '^sieve-core '; then
+              echo "sieve-core is visible in the crates.io index"
+              exit 0
+            fi
+            echo "waiting for sieve-core index propagation ($i/30)"
+            sleep 10
+          done
+          echo "sieve-core did not appear in crates.io index in time" >&2
+          exit 1
+      - name: Publish sieve-cli
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} -p sieve-cli
 
   publish-pypi:
     name: Publish to PyPI

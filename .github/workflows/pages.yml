@@ -29,6 +29,8 @@ jobs:
   build:
     name: Build mdBook
     runs-on: ubuntu-latest
+    outputs:
+      pages-ready: ${{ steps.configure-pages.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@v2
@@ -36,19 +38,19 @@ jobs:
           tool: mdbook
       - name: Build docs
         run: mdbook build docs
-      - uses: actions/configure-pages@v5
+      - id: configure-pages
+        uses: actions/configure-pages@v5
         if: github.event_name != 'pull_request'
-        with:
-          enablement: true
+        continue-on-error: true
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.configure-pages.outcome == 'success'
         with:
           path: docs/book
 
   deploy:
     name: Deploy
     needs: build
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.build.outputs.pages-ready == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

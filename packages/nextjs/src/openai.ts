@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// OpenAI SDK wrapper (`@sieve/nextjs/openai`).
+// OpenAI SDK wrapper (`sieve-guard-nextjs/openai`).
 //
 // Usage:
 //   import OpenAI from 'openai';
-//   import { wrapOpenAI } from '@sieve/nextjs/openai';
+//   import { wrapOpenAI } from 'sieve-guard-nextjs/openai';
 //
 //   const client = wrapOpenAI(new OpenAI());
 //   const resp = await client.chat.completions.create({ ... });

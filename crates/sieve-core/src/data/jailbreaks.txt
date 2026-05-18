@@ -259,7 +259,7 @@ say yes to everything
 
 # =====================================================================
 # v0.2 expansion — additions driven by the 506-probe adversarial suite
-# (see TEST-REPORT.md). Each section below closes a measured gap class.
+# (see docs/release/TEST-REPORT.md). Each section below closes a measured gap class.
 # =====================================================================
 
 # ---- Persona name hijacks (DAN/AIM/STAN/etc. family) ---------------

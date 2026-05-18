@@ -4,7 +4,7 @@
 > Author: Rob
 > Last updated: 2026-05-16
 > Working title: `sieve` (final name TBD)
-> Companion docs: [ARCHITECTURE.md](ARCHITECTURE.md), [research/LANDSCAPE.md](research/LANDSCAPE.md)
+> Companion docs: [ARCHITECTURE.md](ARCHITECTURE.md), [research/LANDSCAPE.md](../../research/LANDSCAPE.md)
 
 ---
 
@@ -201,7 +201,7 @@ print(post.decision, post.findings)
 Installed separately, vendor-specific sugar over the primary API:
 
 ```python
-# pip install sieve[openai]
+# pip install sieve-guard[openai]
 from sieve.contrib.openai import wrap
 from openai import OpenAI
 
@@ -211,7 +211,7 @@ print(resp.sieve.decision)
 ```
 
 ```python
-# pip install sieve[anthropic]
+# pip install sieve-guard[anthropic]
 from sieve.contrib.anthropic import wrap
 from anthropic import Anthropic
 
@@ -223,7 +223,7 @@ print(resp.sieve.decision)
 ### 6.5 WASM / Next.js — primary
 
 ```typescript
-import init, { Scanner } from '@sieve/wasm';
+import init, { Scanner } from 'sieve-guard-wasm';
 await init();
 
 const scanner = new Scanner();
@@ -237,8 +237,8 @@ const post = scanner.scan_output(response, pre.canary_state);
 ### 6.6 Next.js — optional contrib wrappers
 
 ```typescript
-// npm install @sieve/nextjs @sieve/wasm
-import { wrapOpenAI } from '@sieve/nextjs/openai';
+// npm install sieve-guard-nextjs sieve-guard-wasm
+import { wrapOpenAI } from 'sieve-guard-nextjs/openai';
 import OpenAI from 'openai';
 
 const client = wrapOpenAI(new OpenAI());
@@ -247,7 +247,7 @@ const client = wrapOpenAI(new OpenAI());
 
 ```typescript
 // Vercel AI SDK middleware
-import { sieveMiddleware } from '@sieve/nextjs/ai-sdk';
+import { sieveMiddleware } from 'sieve-guard-nextjs/ai-sdk';
 import { openai } from '@ai-sdk/openai';
 
 const protectedModel = sieveMiddleware(openai('gpt-4o'));
@@ -404,9 +404,9 @@ sieve-core (pure Rust, zero LLM deps)
 |---|---|---|---|
 | Rust crate (crates.io) | ✓ | | |
 | Python wheel (PyPI) | ✓ | | |
-| WASM (npm: `@sieve/wasm`) | ✓ | | |
-| Next.js helpers (npm: `@sieve/nextjs`) | ✓ | | |
-| Node native (napi-rs, npm: `@sieve/node`) | | ✓ | |
+| WASM (npm: `sieve-guard-wasm`) | ✓ | | |
+| Next.js helpers (npm: `sieve-guard-nextjs`) | ✓ | | |
+| Node native (napi-rs, npm: `sieve-guard-node`) | | ✓ | |
 | Go (cgo + cbindgen) | | ✓ | |
 | Swift/Kotlin (uniffi) | | | ✓ |
 | CLI tool | | | ✓ |
@@ -418,8 +418,8 @@ sieve-core (pure Rust, zero LLM deps)
 |---|---|---|
 | `sieve.contrib.openai` (Python) | ✓ | |
 | `sieve.contrib.anthropic` (Python) | ✓ | |
-| `@sieve/nextjs/openai` | ✓ | |
-| `@sieve/nextjs/ai-sdk` (Vercel AI SDK) | ✓ | |
+| `sieve-guard-nextjs/openai` | ✓ | |
+| `sieve-guard-nextjs/ai-sdk` (Vercel AI SDK) | ✓ | |
 | `sieve.contrib.litellm` | | ✓ |
 | `sieve.contrib.langchain` | | ✓ |
 | `sieve.contrib.llamaindex` | | ✓ |
@@ -669,7 +669,7 @@ Targets: catch rate ≥95% on the bypass set, FPR ≤2% on benign set.
 ### v0.1 — "Vendor-Neutral Core" (target: 4 weeks)
 - Core Rust crate with all v0.1 detectors
 - Python binding (pyo3 + maturin) + contrib wrappers (openai, anthropic)
-- WASM binding (wasm-bindgen) + `@sieve/nextjs` helpers
+- WASM binding (wasm-bindgen) + `sieve-guard-nextjs` helpers
 - BYO-ONNX classifier interface (no bundled weights)
 - Heuristic context analyzer
 - Deterministic commitment checks
@@ -740,7 +740,7 @@ The README leads with this list. Honesty is the project's reputational moat.
 | GitHub stars (main repo) | 500 | 3,000 |
 | Crates.io downloads | 5,000 | 100,000 |
 | PyPI downloads | 20,000 | 500,000 |
-| npm downloads (`@sieve/wasm` + `@sieve/nextjs`) | 5,000 | 100,000 |
+| npm downloads (`sieve-guard-wasm` + `sieve-guard-nextjs`) | 5,000 | 100,000 |
 | Production adopters (named, with permission) | 3 | 25 |
 | External contributors (>1 merged PR) | 2 | 15 |
 | HN front page hits | ≥1 | — |

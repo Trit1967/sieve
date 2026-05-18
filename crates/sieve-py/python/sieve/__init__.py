@@ -7,9 +7,9 @@ Pure-string API on top of the pyo3-backed core. ``Scanner.scan_input`` and
 Contrib wrappers for the OpenAI and Anthropic SDKs live in
 ``sieve.contrib`` and are installed via package extras::
 
-    pip install sieve              # core only
-    pip install sieve[openai]      # + OpenAI wrapper
-    pip install sieve[anthropic]   # + Anthropic wrapper
+    pip install sieve-guard        # core only
+    pip install sieve-guard[openai]      # + OpenAI wrapper
+    pip install sieve-guard[anthropic]   # + Anthropic wrapper
 """
 
 from ._native import (

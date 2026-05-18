@@ -11,9 +11,9 @@ Working examples for each supported runtime.
 | Python LangChain | [`python-langchain/`](python-langchain/) | Vendor-neutral primary API (`scan_input` + `scan_output`) used directly inside a LangChain pipeline. No contrib wrapper needed. |
 | Next.js + Vercel AI SDK | [`nextjs-vercel-ai/`](nextjs-vercel-ai/) | `sieveMiddleware()` wrapping `@ai-sdk/openai` inside a Next.js App Router POST handler. |
 | Next.js Edge runtime | [`nextjs-edge-runtime/`](nextjs-edge-runtime/) | Stateless `sieveCheck()` from Next.js Edge middleware (`runtime: 'edge'`). Sub-50ms cold start with the WASM bundle. |
-| Next.js tool-call boundary | [`nextjs-tool-call/`](nextjs-tool-call/) | `@sieve/nextjs` helpers around turn state, tool calls, tool results, and retrieved documents. |
+| Next.js tool-call boundary | [`nextjs-tool-call/`](nextjs-tool-call/) | `sieve-guard-nextjs` helpers around turn state, tool calls, tool results, and retrieved documents. |
 
 Each example is intentionally short — they're the smallest thing that
 exercises the relevant API surface, not a production starter. See
 the [main README](../README.md) for the full feature list and
-[ARCHITECTURE.md](../ARCHITECTURE.md) for the layered design.
+[docs/project/ARCHITECTURE.md](../docs/project/ARCHITECTURE.md) for the layered design.

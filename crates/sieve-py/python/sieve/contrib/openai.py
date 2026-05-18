@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """OpenAI SDK convenience wrapper.
 
-Installed via ``pip install sieve[openai]``. The wrapper monkey-patches
+Installed via ``pip install sieve-guard[openai]``. The wrapper monkey-patches
 ``client.chat.completions.create`` to:
 
 1. Call ``scanner.scan_input(system, user)`` on the messages.

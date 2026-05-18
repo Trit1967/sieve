@@ -104,9 +104,9 @@ didn't, configure one once on pypi.org against `release.yml`.
    # → should show "sieve-core = "0.3.0"" in results
 
    # npm
-   npm view @sieve/wasm version
+   npm view sieve-guard-wasm version
    # → 0.3.0
-   npm view @sieve/nextjs version
+   npm view sieve-guard-nextjs version
    # → 0.3.0
 
    # PyPI

@@ -65,7 +65,7 @@ jobs:
           # OIDC trusted-publisher config in PyPI project settings.
 
   publish-npm-wasm:
-    name: Publish @sieve/wasm to npm
+    name: Publish sieve-guard-wasm to npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,9 +79,9 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Build bundle
         run: wasm-pack build crates/sieve-wasm --release --target bundler
-      - name: Rewrite package.json name to @sieve/wasm
+      - name: Rewrite package.json name to sieve-guard-wasm
         # wasm-pack uses the Cargo crate name `sieve-wasm` as the npm
-        # package name. We want the scoped name `@sieve/wasm`. Do a
+        # package name. We want the public package name `sieve-guard-wasm`. Do a
         # tiny, safe in-place rewrite before publish.
         run: |
           set -e
@@ -89,7 +89,7 @@ jobs:
           node -e "
             const fs = require('fs');
             const p = JSON.parse(fs.readFileSync('package.json','utf8'));
-            p.name = '@sieve/wasm';
+            p.name = 'sieve-guard-wasm';
             fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
             console.log('name=', p.name);
           "
@@ -100,7 +100,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-npm-nextjs:
-    name: Publish @sieve/nextjs to npm
+    name: Publish sieve-guard-nextjs to npm
     needs: publish-npm-wasm
     runs-on: ubuntu-latest
     steps:

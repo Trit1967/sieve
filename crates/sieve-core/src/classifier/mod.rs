@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! BYO-ONNX classifier interface.
 //!
-//! Per `IMPLEMENTATION_PROMPT.md` Phase 9 and PRD G9, sieve does NOT bundle
+//! Per `research/goals/IMPLEMENTATION_PROMPT.md` Phase 9 and PRD G9, sieve does NOT bundle
 //! ML weights. Users supply their own model (`HuggingFace`
 //! `deepset/deberta-v3-base-injection`,
 //! `protectai/deberta-v3-base-prompt-injection-v2`, or any compatible

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// @sieve/nextjs — Next.js / Vercel AI SDK helpers on top of @sieve/wasm.
+// sieve-guard-nextjs — Next.js / Vercel AI SDK helpers on top of sieve-guard-wasm.
 //
 // Sub-exports:
-//   import { wrapOpenAI }       from '@sieve/nextjs/openai';
-//   import { sieveMiddleware }  from '@sieve/nextjs/ai-sdk';
+//   import { wrapOpenAI }       from 'sieve-guard-nextjs/openai';
+//   import { sieveMiddleware }  from 'sieve-guard-nextjs/ai-sdk';
 //
 // This root module exposes the lower-level primitives that both
 // sub-exports build on: `sieveCheck()` (a stateless input-only scan
@@ -12,7 +12,7 @@
 // re-exported `Scanner` / `Verdict` shapes for users who want to drive
 // the scanner themselves.
 
-import * as sieveWasm from "@sieve/wasm";
+import * as sieveWasm from "sieve-guard-wasm";
 
 let initialized: Promise<void> | null = null;
 type ScannerHandle = InstanceType<typeof sieveWasm.Scanner>;

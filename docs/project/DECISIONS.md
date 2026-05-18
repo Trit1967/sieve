@@ -8,14 +8,14 @@ Decisions made before / during sieve v0.1 implementation. New ADRs append to the
 
 **Status:** Provisional. Final name lock requires verifying availability on crates.io, PyPI, and npm before the v0.1.0-rc1 publish.
 
-**Context:** IMPLEMENTATION_PROMPT.md §11 lists `sieve` as working title with alternatives (`shibboleth`, `prompt-sieve`, `latch`, `untangle`).
+**Context:** research/goals/IMPLEMENTATION_PROMPT.md §11 lists `sieve` as working title with alternatives (`shibboleth`, `prompt-sieve`, `latch`, `untangle`).
 
 **Decision:** Use `sieve` as the package name throughout the codebase. If crates.io/PyPI/npm conflicts surface during the release-prep phase, do a global rename via a single atomic commit; nothing else couples to the name.
 
 **Consequences:**
 - Rust crate: `sieve-core` (publishable as `sieve` on crates.io)
 - Python: `sieve` on PyPI with extras `[openai]`, `[anthropic]`
-- npm: `@sieve/wasm`, `@sieve/nextjs`
+- npm: `sieve-guard-wasm`, `sieve-guard-nextjs`
 
 ---
 
@@ -23,7 +23,7 @@ Decisions made before / during sieve v0.1 implementation. New ADRs append to the
 
 **Status:** Locked.
 
-**Decision:** `sieve-core` is fully synchronous. No `tokio`, no `async-std`, no `async fn` in core. Async appears only in contrib middleware wrappers (Python `contrib.openai`, JS `@sieve/nextjs`), which the user already brought their own runtime for via the LLM SDK.
+**Decision:** `sieve-core` is fully synchronous. No `tokio`, no `async-std`, no `async fn` in core. Async appears only in contrib middleware wrappers (Python `contrib.openai`, JS `sieve-guard-nextjs`), which the user already brought their own runtime for via the LLM SDK.
 
 **Rationale:**
 - Scanning is CPU-bound (Aho-Corasick, Unicode normalization, regex).
@@ -140,6 +140,6 @@ Resolve before the named phase ships:
 | 1 | Whether to publish a separate `sieve-corpus` repo at v0.1 or stub it | Phase 14 |
 | 2 | Final ONNX feature gating (`ort` v2 API stability for `sieve-core`) | Phase 9 |
 | 3 | Vercel AI SDK middleware signature — `v3.x` API as of 2026-05 | Phase 13 |
-| 4 | Whether `@sieve/nextjs` re-exports `@sieve/wasm` or peer-depends on it | Phase 13 |
+| 4 | Whether `sieve-guard-nextjs` re-exports `sieve-guard-wasm` or peer-depends on it | Phase 13 |
 
 These are tracked but do not block v0.1 scaffolding.

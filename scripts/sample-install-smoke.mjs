@@ -55,7 +55,7 @@ try {
 
   const wasmPackageJson = path.join(wasmPackage, "package.json");
   const wasmMeta = JSON.parse(readFileSync(wasmPackageJson, "utf8"));
-  wasmMeta.name = "@sieve/wasm";
+  wasmMeta.name = "sieve-guard-wasm";
   writeFileSync(wasmPackageJson, `${JSON.stringify(wasmMeta, null, 2)}\n`);
 
   const packJson = runNpm(["pack", "--pack-destination", tmp, "--json"], path.join(root, "packages", "nextjs"));
@@ -71,7 +71,7 @@ try {
   writeFileSync(
     path.join(tmp, "smoke.mjs"),
     `
-import { instrumentSystemPrompt, sieveCheck } from "@sieve/nextjs";
+import { instrumentSystemPrompt, sieveCheck } from "sieve-guard-nextjs";
 
 const verdict = await sieveCheck("You are helpful.", "hello");
 if (verdict.decision !== "Allow") {

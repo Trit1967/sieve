@@ -12,7 +12,7 @@
 # panics with `unreachable!` on first call when loaded outside a bundler.
 # Browser parity is fine (target=web / target=bundler in real apps).
 # The fix is in the workflow's wasm-pack target + a small JS adapter;
-# tracked in v0.2-backlog.md.
+# tracked in docs/release/v0.2-backlog.md.
 #
 # Prerequisites (handled by .github/workflows/consistency.yml):
 #   - ./target/release/sieve-bench built (Rust reference)

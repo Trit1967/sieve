@@ -28,7 +28,7 @@ npm install -g pnpm
 ## Workflow
 
 1. Fork + branch from `main`.
-2. Read `PRD.md`, `ARCHITECTURE.md`, `IMPLEMENTATION_PROMPT.md`, and `DECISIONS.md`.
+2. Read `docs/project/PRD.md`, `docs/project/ARCHITECTURE.md`, `research/goals/IMPLEMENTATION_PROMPT.md`, and `docs/project/DECISIONS.md`.
 3. If your change adds a new detector, file a design issue first.
 4. Run the quality gates locally:
    ```sh
@@ -37,7 +37,7 @@ npm install -g pnpm
    cargo test --all-features
    cargo deny check
    ```
-5. Open PR with a description that ties the change to a phase from IMPLEMENTATION_PROMPT.md (or explains why it's outside the phase plan).
+5. Open PR with a description that ties the change to a phase from research/goals/IMPLEMENTATION_PROMPT.md (or explains why it's outside the phase plan).
 
 ## Reporting bypasses
 

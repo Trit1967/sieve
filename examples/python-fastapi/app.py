@@ -2,7 +2,7 @@
 """Minimal FastAPI example wiring sieve into a chat endpoint.
 
 Install:
-    pip install sieve[openai] fastapi uvicorn
+    pip install sieve-guard[openai] fastapi uvicorn
 
 Run:
     uvicorn app:app --reload

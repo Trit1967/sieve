@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-//! Adversarial probe suite — PRD §11.16 / IMPLEMENTATION_PROMPT.md.
+//! Adversarial probe suite — PRD §11.16 / research/goals/IMPLEMENTATION_PROMPT.md.
 //!
 //! Each probe simulates a class of attacker tactic and asserts the
 //! Scanner verdict. Headline targets: catch rate ≥95%, FPR ≤2%.

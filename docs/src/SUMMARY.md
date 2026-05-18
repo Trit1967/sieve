@@ -5,6 +5,7 @@
 # Getting started
 
 - [Install](./install.md)
+- [Registration](./registration.md)
 - [Quickstart (Rust)](./quickstart-rust.md)
 - [Quickstart (Python)](./quickstart-python.md)
 - [Quickstart (Next.js)](./quickstart-nextjs.md)

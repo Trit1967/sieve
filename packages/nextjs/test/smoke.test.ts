@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Vitest smoke tests for @sieve/nextjs. The wasm bundle is mocked here so
-// the package can be tested without a fully built @sieve/wasm artifact on
+// Vitest smoke tests for sieve-guard-nextjs. The wasm bundle is mocked here so
+// the package can be tested without a fully built sieve-guard-wasm artifact on
 // the test runner. The Phase 17 CI workflow runs the suite against the
 // real wasm build.
 
@@ -17,7 +17,7 @@ const mockScanRetrievedDocument = vi.fn();
 const mockScanTurn = vi.fn();
 const mockNewConversationState = vi.fn();
 
-vi.mock("@sieve/wasm", () => ({
+vi.mock("sieve-guard-wasm", () => ({
   default: async () => undefined,
   newConversationState: mockNewConversationState,
   Scanner: vi.fn().mockImplementation(() => ({

@@ -1,6 +1,6 @@
 # Implementation Prompt — Sieve v0.1
 
-> Target: implementation agent (Claude Code, Cursor, devin, or human dev) executing against [PRD.md](PRD.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [research/LANDSCAPE.md](research/LANDSCAPE.md).
+> Target: implementation agent (Claude Code, Cursor, devin, or human dev) executing against [docs/project/PRD.md](../../docs/project/PRD.md), [docs/project/ARCHITECTURE.md](../../docs/project/ARCHITECTURE.md), and [research/LANDSCAPE.md](../LANDSCAPE.md).
 > Scope: ship **v0.1 only** to crates.io + PyPI + npm.
 > Working title: `sieve` (replace globally if renamed).
 
@@ -18,13 +18,13 @@ The library has three audiences:
 The launch artifact is a working v0.1 with:
 - Pure-Rust `sieve-core` crate
 - `sieve` Python wheel on PyPI
-- `@sieve/wasm` + `@sieve/nextjs` npm packages
+- `sieve-guard-wasm` + `sieve-guard-nextjs` npm packages
 - A reproducible benchmark suite vs. JailbreakBench / garak / ACL LLMSec 2025 bypasses
 - A README that punches with the Unicode-smuggling bypass demo as the opening artifact
 
 Reference docs (canonical truth — read them first):
-- `PRD.md` — what we're building, success criteria, scope decisions
-- `ARCHITECTURE.md` — layered design, module structure, data flow diagrams
+- `docs/project/PRD.md` — what we're building, success criteria, scope decisions
+- `docs/project/ARCHITECTURE.md` — layered design, module structure, data flow diagrams
 - `research/LANDSCAPE.md` — competitive intel; what existing tools do and what they miss
 
 When this prompt and the canonical docs disagree, the canonical docs win.
@@ -70,12 +70,12 @@ These cannot be violated under any condition. Violation = revert and redo.
 
 **Bindings (must ship in v0.1)**
 - `sieve-py` — pyo3 + maturin → PyPI as `sieve`
-- `sieve-wasm` — wasm-bindgen → npm as `@sieve/wasm`
-- `@sieve/nextjs` — thin JS package wrapping `@sieve/wasm` with Vercel AI SDK + OpenAI helpers
+- `sieve-wasm` — wasm-bindgen → npm as `sieve-guard-wasm`
+- `sieve-guard-nextjs` — thin JS package wrapping `sieve-guard-wasm` with Vercel AI SDK + OpenAI helpers
 
 **Contrib wrappers (optional, separate package extras)**
 - Python: `sieve.contrib.openai`, `sieve.contrib.anthropic`
-- JS: `@sieve/nextjs/openai`, `@sieve/nextjs/ai-sdk` (Vercel AI SDK)
+- JS: `sieve-guard-nextjs/openai`, `sieve-guard-nextjs/ai-sdk` (Vercel AI SDK)
 
 ### v0.1 out-of-scope (DO NOT BUILD — defer to v0.2+)
 
@@ -96,7 +96,7 @@ These cannot be violated under any condition. Violation = revert and redo.
 | CLI tool | v0.3 |
 | HTTP sidecar | v0.3 |
 
-If during implementation you discover something feels missing from v0.1, **add it to a `v0.2-backlog.md` file**; do not expand scope.
+If during implementation you discover something feels missing from v0.1, **add it to a `docs/release/v0.2-backlog.md` file**; do not expand scope.
 
 ---
 
@@ -108,9 +108,9 @@ Create this exact layout. Do not rename, do not nest differently:
 sieve/
 ├── Cargo.toml                        # workspace root
 ├── README.md                         # the launch artifact
-├── PRD.md                            # already exists
-├── ARCHITECTURE.md                   # already exists
-├── IMPLEMENTATION_PROMPT.md          # this file
+├── docs/project/PRD.md                            # already exists
+├── docs/project/ARCHITECTURE.md                   # already exists
+├── research/goals/IMPLEMENTATION_PROMPT.md          # this file
 ├── LICENSE-MIT
 ├── LICENSE-APACHE
 ├── CONTRIBUTING.md
@@ -221,7 +221,7 @@ sieve/
 ├── docs/                              # mdbook source
 │   ├── book.toml
 │   └── src/
-└── v0.2-backlog.md                    # scope-creep capture file
+└── docs/release/v0.2-backlog.md                    # scope-creep capture file
 ```
 
 ---
@@ -389,8 +389,8 @@ Build in this order. Each phase ends with a passing CI run and an atomic commit.
   - Vercel Edge runtime test
 - **Commit**: `feat(wasm): wasm-bindgen binding + size-budget enforcement`
 
-### Phase 13 — `@sieve/nextjs` package
-- TS package, depends on `@sieve/wasm`
+### Phase 13 — `sieve-guard-nextjs` package
+- TS package, depends on `sieve-guard-wasm`
 - `wrapOpenAI(client)` helper for Node-runtime Next.js
 - `sieveMiddleware(model)` for Vercel AI SDK
 - `sieveCheck()` for Next.js middleware (Edge runtime)
@@ -565,7 +565,7 @@ def wrap(client: OpenAI) -> OpenAI: ...
 ### 5.3 WASM / TS
 
 ```typescript
-// @sieve/wasm public types
+// sieve-guard-wasm public types
 export class Scanner {
   constructor();
   static builder(): ScannerBuilder;
@@ -586,7 +586,7 @@ export interface Verdict {
 ```
 
 ```typescript
-// @sieve/nextjs public API
+// sieve-guard-nextjs public API
 import type { OpenAI } from 'openai';
 export function wrapOpenAI(client: OpenAI): OpenAI;
 export function sieveMiddleware(model: LanguageModelV1): LanguageModelV1;
@@ -823,8 +823,8 @@ When v0.1 is complete you have:
 1. **Published packages:**
    - `sieve` on crates.io
    - `sieve` on PyPI (with extras `[openai]`, `[anthropic]`)
-   - `@sieve/wasm` on npm
-   - `@sieve/nextjs` on npm
+   - `sieve-guard-wasm` on npm
+   - `sieve-guard-nextjs` on npm
 
 2. **Working examples** (each runs end-to-end):
    - Rust: `cargo run --example rust-basic`
@@ -868,7 +868,7 @@ When v0.1 is complete you have:
 
 ## 11. Open decisions to resolve before starting
 
-Resolve these by writing them into a `DECISIONS.md` ADR file before Phase 1:
+Resolve these by writing them into a `docs/project/DECISIONS.md` ADR file before Phase 1:
 
 1. **Final name** — `sieve` (placeholder) vs. `shibboleth` / `prompt-sieve` / `latch` / other. **Verify crates.io + PyPI + npm availability before locking.**
 2. **Async runtime for middleware** — `tokio` (likely) vs. runtime-agnostic via traits.
@@ -880,8 +880,8 @@ Resolve these by writing them into a `DECISIONS.md` ADR file before Phase 1:
 
 ## 12. References (open these and read them)
 
-- `PRD.md` — canonical product spec
-- `ARCHITECTURE.md` — layered design and module structure
+- `docs/project/PRD.md` — canonical product spec
+- `docs/project/ARCHITECTURE.md` — layered design and module structure
 - `research/LANDSCAPE.md` — competitor analysis; understand what's missing
 - arXiv 2504.11168 (ACL LLMSec 2025) — Unicode bypass paper; your hero feature targets these attacks
 - arXiv 2505.13028 (Palit 2025) — independent benchmark of Lakera
@@ -900,16 +900,16 @@ Resolve these by writing them into a `DECISIONS.md` ADR file before Phase 1:
 
 ## 13. How to start
 
-1. Read `PRD.md`, `ARCHITECTURE.md`, `research/LANDSCAPE.md` in full.
-2. Resolve the open decisions in §11 — write `DECISIONS.md`.
+1. Read `docs/project/PRD.md`, `docs/project/ARCHITECTURE.md`, `research/LANDSCAPE.md` in full.
+2. Resolve the open decisions in §11 — write `docs/project/DECISIONS.md`.
 3. Check `sieve` (or chosen name) availability on crates.io, PyPI, npm. Lock the name.
 4. Execute Phase 0 (scaffold). Commit. Verify CI passes.
 5. Execute Phase 1. Commit. CI green. Move on.
 6. **Do not skip phases. Do not bundle phases. Each phase is an atomic commit that passes on its own.**
 
-If you hit a blocker mid-phase: pause, write the blocker into `DECISIONS.md`, ask, and resume.
+If you hit a blocker mid-phase: pause, write the blocker into `docs/project/DECISIONS.md`, ask, and resume.
 
-If you find scope creep urge: open `v0.2-backlog.md` and add a line. Don't expand v0.1.
+If you find scope creep urge: open `docs/release/v0.2-backlog.md` and add a line. Don't expand v0.1.
 
 If you find a bypass while building: add a regression test, fix it, ship as part of the relevant phase.
 

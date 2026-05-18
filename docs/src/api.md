@@ -42,7 +42,7 @@ custom `Classifier` (the BYO-ONNX seam).
 Mirror of the Rust API. `decision`, `severity`, and `category` are
 PascalCase string literals so Python users never see a Rust import.
 
-## TypeScript (`@sieve/wasm` / `@sieve/nextjs`)
+## TypeScript (`sieve-guard-wasm` / `sieve-guard-nextjs`)
 
 ```typescript
 class Scanner {
@@ -53,4 +53,4 @@ class Scanner {
 ```
 
 The verdict shape is byte-identical across all three bindings — see
-[ADR-0010](https://github.com/Trit1967/sieve/blob/main/DECISIONS.md).
+[ADR-0010](https://github.com/Trit1967/sieve/blob/main/docs/project/DECISIONS.md).

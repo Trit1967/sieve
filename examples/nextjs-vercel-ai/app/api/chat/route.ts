@@ -3,7 +3,7 @@
 // Next.js App Router + Vercel AI SDK + sieve.
 //
 // Install:
-//   npm install @sieve/wasm @sieve/nextjs ai @ai-sdk/openai
+//   npm install sieve-guard-wasm sieve-guard-nextjs ai @ai-sdk/openai
 //
 // This route runs in the default Node runtime (the AI SDK does the
 // streaming on its side; sieve scans the prompt once before the call
@@ -11,7 +11,7 @@
 
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { sieveMiddleware, PromptInjectionBlocked } from "@sieve/nextjs/ai-sdk";
+import { sieveMiddleware, PromptInjectionBlocked } from "sieve-guard-nextjs/ai-sdk";
 
 const protectedModel = sieveMiddleware(openai("gpt-4o-mini"));
 

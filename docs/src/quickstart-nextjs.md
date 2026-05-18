@@ -1,7 +1,7 @@
 # Quickstart (Next.js)
 
 ```sh
-npm install @sieve/wasm @sieve/nextjs
+npm install sieve-guard-wasm sieve-guard-nextjs
 ```
 
 ## Edge middleware (stateless input-only scan)
@@ -9,7 +9,7 @@ npm install @sieve/wasm @sieve/nextjs
 ```typescript
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { sieveCheck } from "@sieve/nextjs";
+import { sieveCheck } from "sieve-guard-nextjs";
 
 export const config = { runtime: "edge", matcher: ["/api/chat/:path*"] };
 
@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
 
 ```typescript
 import OpenAI from "openai";
-import { wrapOpenAI } from "@sieve/nextjs/openai";
+import { wrapOpenAI } from "sieve-guard-nextjs/openai";
 
 const client = wrapOpenAI(new OpenAI());
 const resp = await client.chat.completions.create({ ... });
@@ -38,7 +38,7 @@ console.log(resp.sieve.decision);
 
 ```typescript
 import { openai } from "@ai-sdk/openai";
-import { sieveMiddleware } from "@sieve/nextjs/ai-sdk";
+import { sieveMiddleware } from "sieve-guard-nextjs/ai-sdk";
 
 const protectedModel = sieveMiddleware(openai("gpt-4o"));
 ```

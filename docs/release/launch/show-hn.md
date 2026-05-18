@@ -55,7 +55,7 @@ on the market has these same limits; they just don't lead with them.
 Repo: github.com/Trit1967/sieve
 Crate: crates.io/crates/sieve-core
 PyPI: pypi.org/project/sieve/
-npm: npmjs.com/package/@sieve/wasm + @sieve/nextjs
+npm: npmjs.com/package/sieve-guard-wasm + sieve-guard-nextjs
 
 Pre-release as of today. Bypasses welcome — they become permanent
 regression tests under the usual coordinated-disclosure flow

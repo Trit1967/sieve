@@ -18,5 +18,5 @@ prompt will reveal the canary along with it.
 Canaries are stateless across calls. The same `Scanner` can serve any
 number of concurrent requests with no shared state.
 
-See [ADR-0005](https://github.com/Trit1967/sieve/blob/main/DECISIONS.md)
+See [ADR-0005](https://github.com/Trit1967/sieve/blob/main/docs/project/DECISIONS.md)
 for the format decision; v0.2 ships pluggable canary schemes.

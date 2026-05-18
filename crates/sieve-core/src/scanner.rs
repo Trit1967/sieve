@@ -2,7 +2,7 @@
 //! Scanner orchestrator — the keystone module.
 //!
 //! Composes the v0.1 detectors into a single string-in / verdict-out
-//! pipeline per `IMPLEMENTATION_PROMPT.md` Phase 10:
+//! pipeline per `research/goals/IMPLEMENTATION_PROMPT.md` Phase 10:
 //!
 //! ```text
 //! scan_input(system_prompt, user_input) -> Verdict

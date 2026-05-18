@@ -432,7 +432,7 @@ Docs must clearly state:
 Update:
 
 - `README.md`
-- `ARCHITECTURE.md`
+- `docs/project/ARCHITECTURE.md`
 - `docs/src/api.md`
 - `docs/src/verdict.md`
 - `docs/src/security.md`

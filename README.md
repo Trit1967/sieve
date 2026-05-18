@@ -27,14 +27,20 @@ sieve-core = "0.3"
 ```
 
 ```sh
-pip install sieve
-pip install sieve[openai]
-pip install sieve[anthropic]
+pip install sieve-guard
+pip install sieve-guard[openai]
+pip install sieve-guard[anthropic]
 ```
 
 ```sh
-npm install @sieve/wasm @sieve/nextjs
+npm install sieve-guard-wasm sieve-guard-nextjs
 ```
+
+Distribution names are chosen for publishability:
+
+- Rust crates: `sieve-core`, `sieve-cli`
+- Python distribution: `sieve-guard` with `import sieve`
+- npm packages: `sieve-guard-wasm`, `sieve-guard-nextjs`
 
 ## Rust
 
@@ -95,7 +101,7 @@ if post.is_block():
 ## Next.js / WASM
 
 ```typescript
-import init, { Scanner } from "@sieve/wasm";
+import init, { Scanner } from "sieve-guard-wasm";
 
 await init();
 
@@ -111,7 +117,7 @@ if (verdict.decision === "Block") {
 ```
 
 ```typescript
-import { sieveCheck } from "@sieve/nextjs";
+import { sieveCheck } from "sieve-guard-nextjs";
 
 export async function POST(req: Request) {
   const { systemPrompt, userInput } = await req.json();
@@ -159,7 +165,7 @@ import {
   sieveCheckToolCall,
   sieveCheckToolResult,
   sieveCheckTurn,
-} from "@sieve/nextjs";
+} from "sieve-guard-nextjs";
 
 const state = createConversationState();
 
@@ -237,7 +243,8 @@ blocking control.
 
 - [User guide](https://trit1967.github.io/sieve/)
 - [Docs source](docs/src/introduction.md)
-- [Architecture](ARCHITECTURE.md)
+- [Registration](docs/src/registration.md)
+- [Architecture](docs/project/ARCHITECTURE.md)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 

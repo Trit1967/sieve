@@ -2,7 +2,7 @@
 """Using sieve with raw LangChain (no contrib wrapper required).
 
 Install:
-    pip install sieve langchain langchain-openai
+    pip install sieve-guard langchain langchain-openai
 
 This shows the recommended "vendor-neutral primary API" usage with any
 framework that doesn't (yet) have a sieve contrib wrapper. We pass the

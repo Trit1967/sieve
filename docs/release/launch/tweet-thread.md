@@ -80,8 +80,8 @@
 9/ Try it:
 
    Rust:    cargo add sieve-core
-   Python:  pip install sieve
-   Next.js: npm install @sieve/wasm @sieve/nextjs
+   Python:  pip install sieve-guard
+   Next.js: npm install sieve-guard-wasm sieve-guard-nextjs
 
    MIT + Apache-2.0. Pre-release. Bypass reports welcome — they become
    permanent regression tests.

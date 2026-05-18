@@ -9,7 +9,7 @@ const mockScanInput = vi.fn();
 const mockScanOutput = vi.fn();
 const mockInstrumentSystemPrompt = vi.fn();
 
-vi.mock("@sieve/wasm", () => ({
+vi.mock("sieve-guard-wasm", () => ({
   default: async () => undefined,
   Scanner: vi.fn().mockImplementation(() => ({
     scanInput: mockScanInput,

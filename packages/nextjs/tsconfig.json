@@ -17,7 +17,7 @@
     "allowSyntheticDefaultImports": true,
     "verbatimModuleSyntax": false,
     "paths": {
-      "@sieve/wasm": ["./node_modules/@sieve/wasm"]
+      "sieve-guard-wasm": ["./node_modules/sieve-guard-wasm"]
     }
   },
   "include": ["src/**/*", "test/**/*", "types/**/*"],

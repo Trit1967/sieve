@@ -23,7 +23,7 @@ print(post.decision, post.findings)
 ## Optional contrib wrappers
 
 ```python
-# pip install sieve[openai]
+# pip install sieve-guard[openai]
 from openai import OpenAI
 from sieve.contrib.openai import wrap
 
@@ -39,7 +39,7 @@ print(resp.sieve.decision)
 ```
 
 ```python
-# pip install sieve[anthropic]
+# pip install sieve-guard[anthropic]
 from anthropic import Anthropic
 from sieve.contrib.anthropic import wrap
 

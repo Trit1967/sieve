@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! `WebAssembly` binding for sieve via wasm-bindgen.
 //!
-//! Published to npm as `@sieve/wasm`. The bundle is consumed directly from
+//! Published to npm as `sieve-guard-wasm`. The bundle is consumed directly from
 //! browser code, Cloudflare Workers, Vercel Edge runtime, Deno, and Node.
 //! Size budget: <2MB compressed (enforced in CI per ADR-0004).
 //!

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! Verdict schema — the cross-language stable API surface.
 //!
-//! Bindings (`sieve-py`, `sieve-wasm`, future `@sieve/node`) reflect this
+//! Bindings (`sieve-py`, `sieve-wasm`, future `sieve-guard-node`) reflect this
 //! schema 1:1 in their host language. Changes to these types are public API
 //! changes and must be reflected across all bindings, and verified by the
 //! cross-language consistency test suite (see ADR-0010).

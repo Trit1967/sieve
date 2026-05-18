@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Vercel AI SDK middleware (`@sieve/nextjs/ai-sdk`).
+// Vercel AI SDK middleware (`sieve-guard-nextjs/ai-sdk`).
 //
 // Usage:
 //   import { openai } from '@ai-sdk/openai';
-//   import { sieveMiddleware } from '@sieve/nextjs/ai-sdk';
+//   import { sieveMiddleware } from 'sieve-guard-nextjs/ai-sdk';
 //
 //   const protectedModel = sieveMiddleware(openai('gpt-4o'));
 //   const result = await generateText({ model: protectedModel, prompt: '...' });

@@ -5,7 +5,7 @@ import {
   sieveCheckToolCall,
   sieveCheckToolResult,
   sieveCheckTurn,
-} from "@sieve/nextjs";
+} from "sieve-guard-nextjs";
 
 export const runtime = "edge";
 

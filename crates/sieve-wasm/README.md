@@ -1,14 +1,14 @@
-# @sieve/wasm
+# sieve-guard-wasm
 
 WebAssembly build of [sieve](https://github.com/Trit1967/sieve), the
 vendor-neutral prompt injection defense library.
 
 ```bash
-npm install @sieve/wasm
+npm install sieve-guard-wasm
 ```
 
 ```typescript
-import init, { Scanner, newConversationState } from '@sieve/wasm';
+import init, { Scanner, newConversationState } from 'sieve-guard-wasm';
 await init();
 
 const scanner = new Scanner();
@@ -54,7 +54,7 @@ Works in:
 - Cloudflare Workers
 - Vercel Edge Runtime
 - Deno
-- Node.js (`require('@sieve/wasm')`)
+- Node.js (`require('sieve-guard-wasm')`)
 
 See the [main repository](https://github.com/Trit1967/sieve) for the full
 API contract, what this does NOT catch, and the benchmark report.

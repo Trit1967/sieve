@@ -4,7 +4,7 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "sieve"
+name = "sieve-guard"
 version = "0.3.0"
 description = "Vendor-neutral, offline-first prompt injection defense library"
 readme = "../../README.md"

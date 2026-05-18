@@ -99,7 +99,7 @@ modulo the version string — no bypasses reported during the RC window.
 ## [0.1.0-rc1] - 2026-05-16
 
 First public release candidate of `sieve`. Covers Phases 0-17 of the
-build plan in `IMPLEMENTATION_PROMPT.md`.
+build plan in `research/goals/IMPLEMENTATION_PROMPT.md`.
 
 **Headline numbers** (`benchmarks/REPORT.md`):
 - Jailbreak corpus (224 curated): 100.0% Block.
@@ -130,10 +130,10 @@ adds Linux + macOS + WASM.
 
 ### Added
 - Cargo workspace scaffold with `sieve-core`, `sieve-py`, `sieve-wasm` crates.
-- `@sieve/nextjs` JS package scaffold.
+- `sieve-guard-nextjs` JS package scaffold.
 - License files (MIT + Apache-2.0).
-- DECISIONS.md (ADR-0001 through ADR-0011).
-- v0.2-backlog.md.
+- docs/project/DECISIONS.md (ADR-0001 through ADR-0011).
+- docs/release/v0.2-backlog.md.
 - Phase 1: `Verdict` schema (`Verdict`, `Finding`, `Decision`, `Severity`,
   `Category`, `CanaryState`, `CanaryLeak`, `CommitmentViolation`) with full
   serde JSON round-trip support. Schema is the cross-language stable API
@@ -185,14 +185,14 @@ adds Linux + macOS + WASM.
   - ci.yml: fmt + clippy + test matrix (Ubuntu/macOS/Windows × stable/MSRV/
     nightly) + cargo-deny + no-network audit + cargo-llvm-cov coverage
     + WASM bundle build & size budget + Python wheel build (3 OSes) +
-    @sieve/nextjs typecheck + vitest.
+    sieve-guard-nextjs typecheck + vitest.
   - bench.yml: criterion + bundled-corpus benchmark on every PR; uploads
     REPORT.md + criterion HTML.
   - fuzz.yml: weekly cargo-fuzz scheduled (Mondays 06:17 UTC), 1h budget.
   - consistency.yml: builds all 3 bindings and asserts byte-equal verdict
     decision strings across Rust / Python / WASM for the smoke corpus.
   - release.yml: tag-triggered publish to crates.io, PyPI (linux/mac/
-    windows wheels via maturin-action), npm (@sieve/wasm + @sieve/nextjs),
+    windows wheels via maturin-action), npm (sieve-guard-wasm + sieve-guard-nextjs),
     plus a GitHub release with CHANGELOG body.
 - Phase 16: Five working examples + 14-page mdbook user guide.
   - `examples/rust-basic` runs all 4 scanner-side cases.
@@ -220,15 +220,15 @@ adds Linux + macOS + WASM.
   detection rate ≥95% on jailbreaks and 0% block-FPR + ≤10% flag-FPR
   on benigns. Provenance manifest extended with the Phase 14 batch +
   planned v0.2 external-merge entry.
-- Phase 13: `@sieve/nextjs` TypeScript package — three sub-exports:
-  `@sieve/nextjs` (root) ships `sieveCheck()` for stateless Edge
+- Phase 13: `sieve-guard-nextjs` TypeScript package — three sub-exports:
+  `sieve-guard-nextjs` (root) ships `sieveCheck()` for stateless Edge
   middleware + `Verdict` / `Finding` / `CanaryState` types +
-  `PromptInjectionBlocked` error class; `@sieve/nextjs/openai` ships
-  `wrapOpenAI(client)`; `@sieve/nextjs/ai-sdk` ships
+  `PromptInjectionBlocked` error class; `sieve-guard-nextjs/openai` ships
+  `wrapOpenAI(client)`; `sieve-guard-nextjs/ai-sdk` ships
   `sieveMiddleware(model)` that plugs into the Vercel AI SDK v3.x
-  `LanguageModelV1` shape. Vitest smoke suite mocks `@sieve/wasm` and
+  `LanguageModelV1` shape. Vitest smoke suite mocks `sieve-guard-wasm` and
   covers benign + block paths through the OpenAI wrapper.
-- Phase 12: WASM binding via wasm-bindgen (`@sieve/wasm`).
+- Phase 12: WASM binding via wasm-bindgen (`sieve-guard-wasm`).
   `new Scanner()` + `scanner.scanInput(system, user)` +
   `scanner.scanOutput(system, output, canaryState)`. Returns plain JS
   objects via `serde_wasm_bindgen` matching the canonical Verdict

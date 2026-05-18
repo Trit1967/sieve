@@ -11,13 +11,13 @@ the extensive validation pass that followed the local v0.1.0 tag.
 |---|---|
 | Does it build on Linux / macOS / Windows? | **Yes.** CI green across all three OSes + stable / MSRV-1.85 / nightly. |
 | Do the bindings (Python / WASM / Next.js) compile + ship? | **Yes.** Python wheel builds on 3 OSes; vitest passes; WASM bundle <2MB compressed. |
-| Does the cross-language API agree on verdicts? | **Yes (Rust↔Python).** WASM-from-Node parity deferred to v0.1.1 (see v0.2-backlog.md). |
+| Does the cross-language API agree on verdicts? | **Yes (Rust↔Python).** WASM-from-Node parity deferred to v0.1.1 (see docs/release/v0.2-backlog.md). |
 | Does it catch attacks of the kind designed-into the corpus? | **Yes — 100%** on the 224-line curated jailbreak set + 17 PRD §11.16 adversarial probes. |
 | Does it catch attacks of the kind it WASN'T designed for? | **No — 59.7%** on a 506-probe generative adversarial suite (164 bypasses found across paraphrase, l33t, URL/HTML/reversed encoding, novel personas, fake-memory social engineering, tool-token injection). Listed honestly in README. |
 | FPR on the curated benign corpus? | **0.0% Block, 0.0% Flag** on 108 adversarial-looking-but-benign queries. |
 | FPR on the 99-line adversarial-benign stress set in adversarial_500? | **4.0% Block** — 4 false-blocks documented + explained below. |
 | Per-scan latency? | p50 7 µs, p99 18 µs on the bundled corpus. |
-| Real published-registry shipping status? | Live workflow on GitHub Actions; npm `@sieve/wasm` + PyPI OIDC awaiting one-time configuration; crates.io token needs to be replaced (current is revoked). |
+| Real published-registry shipping status? | Live workflow on GitHub Actions; npm `sieve-guard-wasm` + PyPI OIDC awaiting one-time configuration; crates.io token needs to be replaced (current is revoked). |
 
 ## Live numbers
 
@@ -28,7 +28,7 @@ CI                              ✓  ~1m54s   (10 jobs: fmt, clippy, deny, no-ne
                                               wasm size, coverage, cargo test × {ubuntu
                                               stable / nightly / 1.85, macOS stable,
                                               windows stable}, Python wheel × 3 OSes,
-                                              @sieve/nextjs typecheck + vitest)
+                                              sieve-guard-nextjs typecheck + vitest)
 Benchmark regression            ✓  ~1m6s    (cargo bench + benchmarks/run.sh)
 Cross-language consistency      ✓  ~52s     (Rust↔Python verdict parity on smoke corpus)
 ```
@@ -37,7 +37,7 @@ Cross-language consistency      ✓  ~52s     (Rust↔Python verdict parity on s
 
 - **148 unit + 23 adversarial + 2 corpus** tests in `sieve-core`, all passing on Windows/macOS/Linux.
 - **9 pytest** tests in the Python wheel, all passing on Windows-built wheel.
-- **4 vitest** tests in `@sieve/nextjs`, all passing.
+- **4 vitest** tests in `sieve-guard-nextjs`, all passing.
 - **6 property tests** at 256–1024 cases each (verdict round-trip, normalize idempotence, scanner determinism, score bounded, etc.).
 
 ### Adversarial probe suite (PRD §11.16)
@@ -71,15 +71,15 @@ Cross-language consistency      ✓  ~52s     (Rust↔Python verdict parity on s
 | 6 | `consistency.yml` had bash heredocs that GitHub couldn't parse as YAML; workflow showed file path instead of name | First GH run, before any commit | Rewrote as plain bash script + thin YAML wrapper. |
 | 7 | `getrandom 0.2.17` failed to compile for `wasm32-unknown-unknown` without `js` feature | WASM publish job | Added `cfg(target_arch = "wasm32")` dep stanza with `features = ["js"]`. |
 | 8 | `wasm-opt` rejected Rust 1.95's bulk-memory ops | WASM publish job | Added `--enable-bulk-memory` + `--enable-nontrapping-float-to-int` to the wasm-pack release profile. |
-| 9 | wasm-pack named the npm package `sieve-wasm` (from crate name) not `@sieve/wasm` | npm publish | Added a pre-publish rewrite of `pkg/package.json` `name` field. |
+| 9 | wasm-pack named the npm package `sieve-wasm` (from crate name) not `sieve-guard-wasm` | npm publish | Added a pre-publish rewrite of `pkg/package.json` `name` field. |
 | 10 | `criterion --quick` was removed | bench job | Switched to `--sample-size 10` + `--bench scan`. |
 | 11 | macOS `cargo test --workspace` failed to link Python symbols into the test binary | macOS CI | Added `.cargo/config.toml` with `-undefined dynamic_lookup` AND excluded `sieve-py` from `cargo test --workspace` (it's tested via maturin develop + pytest). |
 | 12 | Windows pytest `ModuleNotFoundError: No module named 'pytest'` | Windows Python wheel job | Forced `python -m pip install pytest` and `python -m pytest` so the active venv's interpreter is used. |
-| 13 | npm `workspace:*` peer protocol isn't supported by plain npm | @sieve/nextjs install | Switched to `"^0.1.0"` + `--legacy-peer-deps`. |
-| 14 | `npm install --legacy-peer-deps` still typed-checked against missing `@sieve/wasm` | @sieve/nextjs typecheck | Added ambient module decl `types/sieve-wasm.d.ts`. |
+| 13 | npm `workspace:*` peer protocol isn't supported by plain npm | sieve-guard-nextjs install | Switched to `"^0.1.0"` + `--legacy-peer-deps`. |
+| 14 | `npm install --legacy-peer-deps` still typed-checked against missing `sieve-guard-wasm` | sieve-guard-nextjs typecheck | Added ambient module decl `types/sieve-wasm.d.ts`. |
 | 15 | 1MB pathological-input bench threshold (500ms) too tight for slow CI runners | All CI test jobs | Bumped to 5s; bare-metal still <50us. |
 | 16 | README quickstart blocks used stale `scan_output(response, canary_state)` and `use sieve::Scanner` | Docs sweep | Fixed: `sieve_core::Scanner`, three-arg `scan_output`, scanInput/scanOutput camelCase in TS. |
-| 17 | `consistency.yml` originally diffed Rust↔Python↔WASM but WASM in plain Node panicked `unreachable` | First consistency run | Scoped the v0.1 test to Rust↔Python; documented WASM-in-Node deferral in v0.2-backlog.md. |
+| 17 | `consistency.yml` originally diffed Rust↔Python↔WASM but WASM in plain Node panicked `unreachable` | First consistency run | Scoped the v0.1 test to Rust↔Python; documented WASM-in-Node deferral in docs/release/v0.2-backlog.md. |
 | 18 | Old goal-driven Stop hook + `deploy-trigger.py` PostToolUse hook on the workstation were creating an infinite Stop loop and a fake `/deploy RIGHT NOW` injection on every `git push` | This session itself | User cleared the goal; documented; user still needs to delete `~/.claude/hooks/deploy-trigger.py`. |
 
 ## Inviolable rules verification

@@ -76,20 +76,20 @@ Expected: 148 unit + 2 corpus tests green; example prints
 # Confirm artifacts:
 curl -s https://crates.io/api/v1/crates/sieve-core | jq '.crate.max_version'
 curl -s https://pypi.org/pypi/sieve/json | jq '.info.version'
-curl -s https://registry.npmjs.org/@sieve/wasm | jq '."dist-tags".latest'
-curl -s https://registry.npmjs.org/@sieve/nextjs | jq '."dist-tags".latest'
+curl -s https://registry.npmjs.org/sieve-guard-wasm | jq '."dist-tags".latest'
+curl -s https://registry.npmjs.org/sieve-guard-nextjs | jq '."dist-tags".latest'
 
-# Publish the launch posts (drafts already in launch/):
+# Publish the launch posts (drafts already in docs/release/launch/):
 gh release view v0.1.0 --web   # spot-check the auto-generated release notes
 ```
 
 ## Step 5 — Launch posts
 
-Drafts are pre-written in `launch/`:
+Drafts are pre-written in `docs/release/launch/`:
 
-- `launch/blog-post.md` — "Why your prompt injection defense doesn't catch zero-width characters"
-- `launch/show-hn.md` — Show HN post text
-- `launch/tweet-thread.md` — Twitter/X thread
+- `docs/release/launch/blog-post.md` — "Why your prompt injection defense doesn't catch zero-width characters"
+- `docs/release/launch/show-hn.md` — Show HN post text
+- `docs/release/launch/tweet-thread.md` — Twitter/X thread
 
 You probably want to read through each before posting — they cite
 ACL 2025 numbers and call out specific competitors.
@@ -97,7 +97,7 @@ ACL 2025 numbers and call out specific competitors.
 ## If something goes wrong
 
 - A crate / wheel / npm name conflict means someone else already
-  squatted it. Choose an alternative from DECISIONS.md ADR-0001 and
+  squatted it. Choose an alternative from docs/project/DECISIONS.md ADR-0001 and
   bump the workspace + binding metadata accordingly.
 - A workflow job fails: read the action log, fix the secret or the
   workflow, push a small fix commit, delete the failed tag, and

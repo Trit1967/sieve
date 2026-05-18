@@ -1,6 +1,6 @@
 # BYO classifier
 
-Sieve does NOT bundle ML weights ([R11](https://github.com/Trit1967/sieve/blob/main/PRD.md)).
+Sieve does NOT bundle ML weights ([R11](https://github.com/Trit1967/sieve/blob/main/docs/project/PRD.md)).
 Users plug in their own model via the `Classifier` trait:
 
 ```rust

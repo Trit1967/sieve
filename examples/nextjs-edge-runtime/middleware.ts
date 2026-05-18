@@ -4,10 +4,10 @@
 // start fits inside Vercel Edge / Cloudflare Workers latency budgets.
 //
 // Install:
-//   npm install @sieve/wasm @sieve/nextjs
+//   npm install sieve-guard-wasm sieve-guard-nextjs
 
 import { NextRequest, NextResponse } from "next/server";
-import { sieveCheck } from "@sieve/nextjs";
+import { sieveCheck } from "sieve-guard-nextjs";
 
 export const config = {
   runtime: "edge",

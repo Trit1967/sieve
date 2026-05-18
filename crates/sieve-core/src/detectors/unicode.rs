@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! Unicode normalization detector — the hero feature.
 //!
-//! Per `IMPLEMENTATION_PROMPT.md` Phase 2, this module implements the defense
+//! Per `research/goals/IMPLEMENTATION_PROMPT.md` Phase 2, this module implements the defense
 //! against documented 100%-evasion bypasses against Lakera, `Azure` Prompt
 //! Shields, Meta Prompt Guard, and `ProtectAI` v2 (`arXiv` 2504.11168, ACL
 //! `LLMSec` 2025).

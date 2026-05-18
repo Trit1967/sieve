@@ -17,8 +17,9 @@
 //! }
 //! ```
 //!
-//! See `PRD.md` and `ARCHITECTURE.md` at the workspace root for the design
-//! contract this crate implements. Phase plan in `IMPLEMENTATION_PROMPT.md`.
+//! See `docs/project/PRD.md` and `docs/project/ARCHITECTURE.md` for the
+//! design contract this crate implements. Phase plan in
+//! `research/goals/IMPLEMENTATION_PROMPT.md`.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Production code must be panic-free (ADR-0009). Test modules are exempt via

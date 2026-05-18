@@ -124,10 +124,10 @@ project's reputational moat.
 cargo add sieve-core
 
 # Python
-pip install sieve
+pip install sieve-guard
 
 # Next.js
-npm install @sieve/wasm @sieve/nextjs
+npm install sieve-guard-wasm sieve-guard-nextjs
 ```
 
 Permissive license (MIT + Apache-2.0). No signup. No telemetry. No

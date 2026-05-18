@@ -10,16 +10,16 @@ sieve-core = "0.3"
 ## Python
 
 ```sh
-pip install sieve                   # core
-pip install sieve[openai]           # + OpenAI client wrapper
-pip install sieve[anthropic]        # + Anthropic client wrapper
+pip install sieve-guard             # core
+pip install sieve-guard[openai]           # + OpenAI client wrapper
+pip install sieve-guard[anthropic]        # + Anthropic client wrapper
 ```
 
 ## Next.js / Edge runtimes
 
 ```sh
-npm install @sieve/wasm @sieve/nextjs
+npm install sieve-guard-wasm sieve-guard-nextjs
 ```
 
-That's the whole install surface. v0.2 adds optional `@sieve/node`
-(napi-rs) for non-WASM Node deployments.
+That's the whole install surface. A future Node-native package can be added
+separately if WASM is not the right runtime for a deployment.

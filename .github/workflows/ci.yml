@@ -178,7 +178,7 @@ jobs:
         run: python -m pytest python/sieve/tests/ -q
 
   nextjs-build:
-    name: '@sieve/nextjs build + 1000-case canary plumbing'
+    name: 'sieve-guard-nextjs build + 1000-case canary plumbing'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -187,9 +187,9 @@ jobs:
           node-version: "20"
       - working-directory: packages/nextjs
         # --legacy-peer-deps tells npm to skip peer-dependency resolution
-        # for @sieve/wasm (which isn't on the npm registry yet at PR
+        # for sieve-guard-wasm (which isn't on the npm registry yet at PR
         # time — it gets published from the same release pipeline). The
-        # vitest tests mock @sieve/wasm anyway.
+        # vitest tests mock sieve-guard-wasm anyway.
         run: |
           npm install --no-audit --no-fund --legacy-peer-deps
           npm run typecheck

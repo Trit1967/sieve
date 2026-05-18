@@ -3,9 +3,9 @@
 Build a Rust-core library with Python (pyo3) and WASM (wasm-bindgen) bindings that detects prompt injection in any LLM application, regardless of vendor or framework. Ship to crates.io, PyPI, and npm.
 
 ## Read first (canonical, authoritative)
-- `IMPLEMENTATION_PROMPT.md` — operational plan, 19 phases, test pyramid, API contracts
-- `PRD.md` — product spec, success criteria, scope
-- `ARCHITECTURE.md` — system design
+- `research/goals/IMPLEMENTATION_PROMPT.md` — operational plan, 19 phases, test pyramid, API contracts
+- `docs/project/PRD.md` — product spec, success criteria, scope
+- `docs/project/ARCHITECTURE.md` — system design
 - `research/LANDSCAPE.md` — competitor analysis
 
 When this goal and the canonical docs disagree, the canonical docs win.
@@ -25,13 +25,13 @@ R11: No bundled ONNX weights (BYO-ONNX interface only)
 R12: Sync core; async only in middleware layer
 
 ## v0.1 must ship
-Detectors in `sieve-core`: UnicodeNormalizer, PatternScanner, EncodingScanner, HeuristicScorer, CanaryEngine, heuristic context analyzer, deterministic commitment checks, BYO-ONNX trait. Bindings: Rust crate, Python wheel, WASM, `@sieve/nextjs`. Contrib helpers: OpenAI + Anthropic (Python), Vercel AI SDK + OpenAI (Next.js).
+Detectors in `sieve-core`: UnicodeNormalizer, PatternScanner, EncodingScanner, HeuristicScorer, CanaryEngine, heuristic context analyzer, deterministic commitment checks, BYO-ONNX trait. Bindings: Rust crate, Python wheel, WASM, `sieve-guard-nextjs`. Contrib helpers: OpenAI + Anthropic (Python), Vercel AI SDK + OpenAI (Next.js).
 
-## v0.1 out of scope (capture in `v0.2-backlog.md`, do not build)
+## v0.1 out of scope (capture in `docs/release/v0.2-backlog.md`, do not build)
 Tool-call linter, conversation tracker, RAG/spotlighting, piggyback LLM analyzer, napi-rs Node binding, Go binding, bundled ONNX weights, LLM-judge, differential testing, streaming, PII, CLI, HTTP sidecar, LangChain/LlamaIndex/LiteLLM wrappers.
 
 ## Execution
-Follow `IMPLEMENTATION_PROMPT.md` phases 0–19 sequentially. Each phase ends with an atomic commit and green CI. Never skip or bundle phases.
+Follow `research/goals/IMPLEMENTATION_PROMPT.md` phases 0–19 sequentially. Each phase ends with an atomic commit and green CI. Never skip or bundle phases.
 
 ## Test pyramid (every phase contributes)
 Unit (≥90% coverage), property (proptest 1000+ cases), fuzz (cargo-fuzz + OSS-Fuzz), integration, corpus (JailbreakBench / garak / ACL 2025 bypasses / curated benign), regression (every reported bypass becomes a permanent test), cross-language consistency (Rust/Python/WASM identical verdicts), performance regression (criterion, fail >10%), memory (Valgrind, ASAN), WASM-specific (<2MB, Cloudflare Workers + Vercel Edge), real-LLM nightly (secrets-gated), adversarial probes (≥95% catch, ≤2% FPR).
@@ -44,7 +44,7 @@ Add network or LLM deps to core. Add telemetry. Bundle ONNX weights. Add async t
 
 ## Start
 1. Read all canonical docs in full.
-2. Resolve open decisions (§11 of IMPLEMENTATION_PROMPT.md) into `DECISIONS.md`. Verify name availability on crates.io/PyPI/npm before locking.
+2. Resolve open decisions (§11 of research/goals/IMPLEMENTATION_PROMPT.md) into `docs/project/DECISIONS.md`. Verify name availability on crates.io/PyPI/npm before locking.
 3. Execute Phase 0 (scaffold workspace) → atomic commit → CI green.
 4. Proceed phase-by-phase. Do not skip or bundle.
 5. When v0.1.0 is tagged: run the launch plan (PRD §15).

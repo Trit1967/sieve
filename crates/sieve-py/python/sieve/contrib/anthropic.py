@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """Anthropic SDK convenience wrapper.
 
-Installed via ``pip install sieve[anthropic]``. Same flow as
+Installed via ``pip install sieve-guard[anthropic]``. Same flow as
 ``sieve.contrib.openai.wrap`` but adapted to the Anthropic SDK's
 ``client.messages.create`` shape (which uses a top-level ``system``
 parameter and a ``messages`` array of user/assistant turns).

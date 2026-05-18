@@ -1,7 +1,7 @@
 # Architecture
 
 > Status: Draft v0.1
-> Companion to: [PRD.md](PRD.md), [research/LANDSCAPE.md](research/LANDSCAPE.md)
+> Companion to: [PRD.md](PRD.md), [research/LANDSCAPE.md](../../research/LANDSCAPE.md)
 > Thesis: Context-aware, output-first, one-line SDK integration. Not a bolt-on input scanner.
 
 ---
@@ -133,7 +133,7 @@ sequenceDiagram
 +----------------+    +-------------------+   +------------------+
         |                       |                      |
         v                       v                      v
-   PyPI: sieve            npm: @sieve/node      npm: @sieve/wasm
+   PyPI: sieve-guard      npm: sieve-guard-node      npm: sieve-guard-wasm
 ```
 
 **Discipline:** core is **pure Rust, zero binding code**. SDK middleware lives in the binding layer where it can be idiomatic to each language. Core never imports `pyo3` or `napi`.
@@ -144,8 +144,8 @@ sequenceDiagram
 sieve/
   Cargo.toml                  # workspace root
   README.md
-  PRD.md
-  ARCHITECTURE.md
+  docs/project/PRD.md
+  docs/project/ARCHITECTURE.md
   LICENSE-MIT
   LICENSE-APACHE
   CONTRIBUTING.md
@@ -340,7 +340,7 @@ print(resp.sieve.normalized_input)  # post-Unicode-normalization input
 ### 7.4 WASM / Edge
 
 ```javascript
-import init, { Guard } from '@sieve/wasm';
+import init, { Guard } from 'sieve-guard-wasm';
 await init();
 
 const guard = new Guard();

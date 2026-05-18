@@ -1,5 +1,5 @@
 {
-  "name": "@sieve/nextjs",
+  "name": "sieve-guard-nextjs",
   "version": "0.3.0",
   "description": "Next.js + Vercel AI SDK helpers for sieve (vendor-neutral prompt injection defense)",
   "license": "(MIT OR Apache-2.0)",
@@ -34,10 +34,10 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sieve/wasm": "^0.3.0"
+    "sieve-guard-wasm": "^0.3.0"
   },
   "peerDependenciesMeta": {
-    "@sieve/wasm": { "optional": false }
+    "sieve-guard-wasm": { "optional": false }
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

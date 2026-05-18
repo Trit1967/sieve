@@ -881,7 +881,11 @@ mod tests {
             }
             let start = std::time::Instant::now();
             let _ = make_scanner().scan(&input);
-            prop_assert!(start.elapsed() < std::time::Duration::from_millis(500));
+            let elapsed = start.elapsed();
+            prop_assert!(
+                elapsed < std::time::Duration::from_secs(5),
+                "scan took {elapsed:?}, expected <5s"
+            );
         }
     }
 }

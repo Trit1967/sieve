@@ -243,6 +243,13 @@ python scripts/public_app_replay_report.py
 npm --prefix packages/nextjs test -- --run
 ```
 
+Replay an application-specific JSONL corpus without adding app code:
+
+```sh
+SIEVE_REPLAY_CORPUS=/path/to/public-app-corpus.jsonl \
+  cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+```
+
 ## Scope
 
 Sieve catches many direct, encoded, Unicode-smuggled, tool-boundary, and

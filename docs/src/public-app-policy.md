@@ -86,7 +86,7 @@ public-app scenarios plus 101 realistic benign public-app prompts:
 
 - 600 benign public-app prompts: 0 hard-blocked.
 - 101 realistic benign public-app prompts: 0 hard-blocked.
-- 1020 high-confidence attacks: 1012 auto-blocked, 99.2%.
+- 1020 high-confidence attacks: 1020 auto-blocked, 100%.
 - Monitor policy: 0 hard-blocks across the same 1620 scenarios.
 
 Run it locally:
@@ -94,3 +94,20 @@ Run it locally:
 ```sh
 cargo test -p sieve-core --test public_app_policy_1000 -- --nocapture
 ```
+
+## Replay and Mutation Gates
+
+Additional library-only gates exercise public-app behavior across direct input,
+chat messages, tool calls, tool results, and retrieved documents:
+
+```sh
+cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+cargo test -p sieve-core --test mutation_fuzz_public_app -- --nocapture
+python scripts/public_app_replay_report.py
+```
+
+`external_corpus_replay` reads a JSONL fixture with explicit expectations for
+attack and benign rows. `mutation_fuzz_public_app` deterministically expands
+high-confidence attacks into 1000+ surface mutations and checks a separate
+benign mutation set for public-app false positives. These tests remain
+fixtures and integration tests; they do not turn sieve into an app.

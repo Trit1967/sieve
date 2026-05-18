@@ -268,8 +268,13 @@ fn high_confidence_public_block(
     {
         return Some("encoded malicious payload is safe to auto-block".into());
     }
-    if !benign_context && direct_exfiltration_intent(text) && verdict.decision == Decision::Block {
-        return Some("direct exfiltration with a raw block verdict is safe to auto-block".into());
+    if !benign_context
+        && direct_exfiltration_intent(text)
+        && (verdict.decision == Decision::Block || has_strong_injection_signal(verdict))
+    {
+        return Some(
+            "direct exfiltration with a strong scanner signal is safe to auto-block".into(),
+        );
     }
     if !benign_context && independent_block_signal_count(verdict) >= 3 {
         return Some("multiple independent block signals are safe to auto-block".into());
@@ -343,6 +348,20 @@ fn independent_block_signal_count(verdict: &Verdict) -> usize {
     detectors.len()
 }
 
+fn has_strong_injection_signal(verdict: &Verdict) -> bool {
+    verdict.findings.iter().any(|finding| {
+        finding.score >= 0.50
+            && matches!(
+                finding.category,
+                Category::KnownPattern
+                    | Category::EncodingPayload
+                    | Category::InstructionDensity
+                    | Category::ToolCallAnomaly
+                    | Category::ConversationDrift
+            )
+    })
+}
+
 fn encoded_payload_is_actionable(verdict: &Verdict, text: &str, benign_context: bool) -> bool {
     if benign_context {
         return false;
@@ -355,7 +374,24 @@ fn encoded_payload_is_actionable(verdict: &Verdict, text: &str, benign_context: 
 }
 
 fn direct_exfiltration_intent(text: &str) -> bool {
-    let verb = [
+    let protected_target = [
+        "system prompt",
+        "system message",
+        "developer message",
+        "api key",
+        "admin token",
+        "secret",
+        "credential",
+        "instructions",
+        "guidelines",
+        "safety filter",
+        "guardrail",
+        "initialization",
+    ]
+    .iter()
+    .any(|needle| text.contains(needle));
+
+    let direct_verb = [
         "reveal",
         "dump",
         "leak",
@@ -372,23 +408,25 @@ fn direct_exfiltration_intent(text: &str) -> bool {
     ]
     .iter()
     .any(|needle| text.contains(needle));
-    let target = [
-        "system prompt",
-        "system message",
-        "developer message",
-        "api key",
-        "admin token",
-        "secret",
-        "credential",
-        "instructions",
-        "guidelines",
-        "safety filter",
-        "guardrail",
-        "initialization",
+
+    let outbound_verb = ["curl", "post", "send", "upload", "forward", "exfiltrate"]
+        .iter()
+        .any(|needle| text.contains(needle));
+    let outbound_destination = [
+        "webhook",
+        "webhook.site",
+        "requestbin",
+        "interact.sh",
+        "dpaste",
+        "paste.rs",
+        "pastebin",
+        "http://",
+        "https://",
     ]
     .iter()
     .any(|needle| text.contains(needle));
-    verb && target
+
+    protected_target && (direct_verb || (outbound_verb && outbound_destination))
 }
 
 fn looks_like_benign_public_app_context(text: &str) -> bool {
@@ -409,6 +447,10 @@ fn looks_like_benign_public_app_context(text: &str) -> bool {
         "explain prompt injection",
         "prompt injection in academic",
         "security blog post",
+        "safer system prompts",
+        "avoid leaking",
+        "avoid revealing",
+        "not revealing",
         "best papers",
         "compare lakera",
         "false positive",
@@ -419,10 +461,28 @@ fn looks_like_benign_public_app_context(text: &str) -> bool {
         "what does",
     ];
     if benign_markers.iter().any(|needle| text.contains(needle)) {
-        !direct_exfiltration_intent(text) || asks_about_encoding(text) || text.contains("policy")
+        !direct_exfiltration_intent(text)
+            || defensive_exfiltration_context(text)
+            || asks_about_encoding(text)
+            || text.contains("policy")
     } else {
         false
     }
+}
+
+fn defensive_exfiltration_context(text: &str) -> bool {
+    [
+        "avoid leaking",
+        "avoid revealing",
+        "not leaking",
+        "not revealing",
+        "cannot reveal",
+        "never paste",
+        "without disclosing",
+        "without storing secrets",
+    ]
+    .iter()
+    .any(|needle| text.contains(needle))
 }
 
 fn asks_about_encoding(text: &str) -> bool {

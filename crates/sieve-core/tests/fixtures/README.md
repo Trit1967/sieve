@@ -22,3 +22,26 @@ Run `cargo test -p sieve-core --test external_advbench -- --ignored
 --nocapture` to see how sieve scores against AdvBench. The number is
 honest but expect it to be lower than our own probe suite, because
 AdvBench tests a different threat model.
+
+## `public_app_external_replay.jsonl`
+
+A small portable replay fixture for the `public_app` policy profile. Each JSONL
+row names the surface being scanned (`input`, `chat_user`, `tool_call`,
+`tool_result`, or `retrieved_document`), the expected policy outcome, and the
+scenario source.
+
+Rows tagged `curated-public-app-red-team` are synthetic prompt-injection cases
+created for this repository. They are not copied from third-party datasets.
+Rows tagged `curated-public-app-benign` are false-positive controls that discuss
+security, prompt injection, webhooks, credentials, and policy design without
+asking the model to obey untrusted instructions.
+
+Run:
+
+```sh
+cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+```
+
+The fixture is intentionally compact so downstream users can copy the schema
+and add their own application-specific traces without pulling in an app server
+or a hosted evaluation service.

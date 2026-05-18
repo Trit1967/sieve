@@ -250,6 +250,12 @@ SIEVE_REPLAY_CORPUS=/path/to/public-app-corpus.jsonl \
   cargo test -p sieve-core --test external_corpus_replay -- --nocapture
 ```
 
+Generate the same Markdown replay report against a custom corpus:
+
+```sh
+python scripts/public_app_replay_report.py --corpus /path/to/public-app-corpus.jsonl
+```
+
 ## Scope
 
 Sieve catches many direct, encoded, Unicode-smuggled, tool-boundary, and

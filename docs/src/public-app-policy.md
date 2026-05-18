@@ -119,3 +119,9 @@ file using the same schema:
 SIEVE_REPLAY_CORPUS=/path/to/public-app-corpus.jsonl \
   cargo test -p sieve-core --test external_corpus_replay -- --nocapture
 ```
+
+Or generate the full public-app replay report with that corpus:
+
+```sh
+python scripts/public_app_replay_report.py --corpus /path/to/public-app-corpus.jsonl
+```

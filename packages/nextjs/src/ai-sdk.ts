@@ -15,11 +15,14 @@
 // {@link PromptInjectionBlocked} if the verdict is Block.
 
 import {
+  applySievePolicy,
   sieveCheck,
   sieveCheckOutput,
   instrumentSystemPrompt,
   PromptInjectionBlocked,
   type CanaryState,
+  type PolicyDecision,
+  type PolicyProfile,
 } from "./index.js";
 
 interface PromptPart {
@@ -44,6 +47,17 @@ interface LanguageModelLike {
   doGenerate: (options: DoGenerateOptions) => Promise<DoGenerateResult>;
   doStream?: (options: DoGenerateOptions) => Promise<unknown>;
   [key: string]: unknown;
+}
+
+export interface SieveMiddlewareOptions {
+  /**
+   * Policy profile used for block decisions.
+   *
+   * Defaults to `strict` for backwards compatibility. Use `public_app` for
+   * public chat/search/support surfaces where ambiguous raw blocks should not
+   * automatically refuse useful user prompts.
+   */
+  policy?: PolicyProfile;
 }
 
 function flattenPrompt(prompt: DoGenerateOptions["prompt"]): {
@@ -111,15 +125,20 @@ function withInstrumentedPrompt(
  * before the call and outputs are scanned after. Returns a new model
  * object preserving every original method.
  */
-export function sieveMiddleware<M extends LanguageModelLike>(model: M): M {
+export function sieveMiddleware<M extends LanguageModelLike>(
+  model: M,
+  options: SieveMiddlewareOptions = {},
+): M {
+  const policyProfile = options.policy ?? "strict";
   const original = model.doGenerate.bind(model);
   const wrapped = {
     ...model,
     doGenerate: async (options: DoGenerateOptions): Promise<DoGenerateResult> => {
       const { system, user } = flattenPrompt(options.prompt);
       const pre = await sieveCheck(system, user);
-      if (pre.decision === "Block") {
-        throw new PromptInjectionBlocked(pre);
+      const prePolicy = await applySievePolicy(policyProfile, pre);
+      if (prePolicy.safe_to_auto_block) {
+        throw new PromptInjectionBlocked(pre, prePolicy);
       }
       const instrumented = await instrumentSystemPrompt(system);
       const result = await original(
@@ -130,9 +149,11 @@ export function sieveMiddleware<M extends LanguageModelLike>(model: M): M {
         generatedText(result),
         instrumented.canary_state,
       );
+      const postPolicy = await applySievePolicy(policyProfile, post);
       (result as { sieve?: unknown }).sieve = post;
-      if (post.decision === "Block") {
-        throw new PromptInjectionBlocked(post);
+      (result as { sieve_policy?: PolicyDecision }).sieve_policy = postPolicy;
+      if (postPolicy.safe_to_auto_block) {
+        throw new PromptInjectionBlocked(post, postPolicy);
       }
       return result;
     },
@@ -145,8 +166,9 @@ export function sieveMiddleware<M extends LanguageModelLike>(model: M): M {
       // chunks lands with the streaming scanner in v0.3.
       const { system, user } = flattenPrompt(options.prompt);
       const pre = await sieveCheck(system, user);
-      if (pre.decision === "Block") {
-        throw new PromptInjectionBlocked(pre);
+      const prePolicy = await applySievePolicy(policyProfile, pre);
+      if (prePolicy.safe_to_auto_block) {
+        throw new PromptInjectionBlocked(pre, prePolicy);
       }
       return originalStream(options);
     };

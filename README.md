@@ -139,6 +139,11 @@ export async function POST(req: Request) {
 }
 ```
 
+Wrapper helpers default to strict behavior for backwards compatibility. For
+public-facing endpoints, pass `policy="public_app"` in Python wrappers or
+`{ policy: "public_app" }` in Next.js wrappers so ambiguous raw blocks are
+reviewed/logged instead of automatically refused.
+
 ## Agent, Tool, and RAG Boundaries
 
 Do not flatten agent context into one string. Scan each trust boundary before it
@@ -217,8 +222,8 @@ The local regression harness currently includes:
 - `1050` agent, tool, RAG, and role-boundary guardrail cases.
 - `2894` generated adversarial probes.
 - `626` benign stress probes.
-- `1620` public-app policy scenarios with 0 benign hard-blocks and 99.2%
-  high-confidence attack auto-blocking.
+- `1721` public-app policy scenarios including 101 realistic benign prompts,
+  with 0 benign hard-blocks and 99.2% high-confidence attack auto-blocking.
 - Cross-language verdict consistency checks.
 
 Run the same checks:

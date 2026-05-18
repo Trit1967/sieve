@@ -29,7 +29,7 @@ export default nextConfig;
 import OpenAI from "openai";
 import { wrapOpenAI } from "sieve-guard-nextjs/openai";
 
-const client = wrapOpenAI(new OpenAI());
+const client = wrapOpenAI(new OpenAI(), { policy: "public_app" });
 
 const resp = await client.chat.completions.create({
   model: "gpt-4o",
@@ -40,6 +40,7 @@ const resp = await client.chat.completions.create({
 });
 
 console.log(resp.sieve.decision); // 'Allow' | 'Flag' | 'Block'
+console.log(resp.sieve_policy.recommended_action);
 ```
 
 The wrapper instruments the outbound system prompt with a canary before the
@@ -52,7 +53,9 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { sieveMiddleware } from "sieve-guard-nextjs/ai-sdk";
 
-const protectedModel = sieveMiddleware(openai("gpt-4o"));
+const protectedModel = sieveMiddleware(openai("gpt-4o"), {
+  policy: "public_app",
+});
 const result = await generateText({ model: protectedModel, prompt: "..." });
 ```
 

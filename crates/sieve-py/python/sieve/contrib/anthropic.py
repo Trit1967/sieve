@@ -9,8 +9,10 @@ parameter and a ``messages`` array of user/assistant turns).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 from sieve import Scanner, PromptInjectionBlocked
+
+PolicyProfile = Literal["strict", "public_app", "monitor"]
 
 
 def _extract(kwargs: dict[str, Any]) -> tuple[str, str]:
@@ -54,7 +56,16 @@ def _response_text(resp: Any) -> str:
         return ""
 
 
-def wrap(client: Any, scanner: Scanner | None = None) -> Any:
+def _should_block(scanner: Scanner, policy: PolicyProfile, verdict: Any) -> tuple[bool, Any]:
+    decision = scanner.apply_policy(policy, verdict)
+    return decision.safe_to_auto_block, decision
+
+
+def wrap(
+    client: Any,
+    scanner: Scanner | None = None,
+    policy: PolicyProfile = "strict",
+) -> Any:
     if scanner is None:
         scanner = Scanner()
     original = client.messages.create
@@ -62,20 +73,24 @@ def wrap(client: Any, scanner: Scanner | None = None) -> Any:
     def patched(**kwargs: Any) -> Any:
         system, user = _extract(kwargs)
         pre = scanner.scan_input(system, user)
-        if pre.is_block():
-            raise PromptInjectionBlocked(pre)
+        blocked, pre_policy = _should_block(scanner, policy, pre)
+        if blocked:
+            raise PromptInjectionBlocked(pre, pre_policy)
         resp = original(**kwargs)
         text = _response_text(resp)
         post = scanner.scan_output(system, text, pre.canary_state)
+        _, post_policy = _should_block(scanner, policy, post)
         try:
             setattr(resp, "sieve", post)
+            setattr(resp, "sieve_policy", post_policy)
         except (AttributeError, TypeError):
             try:
                 resp.__dict__["sieve"] = post  # type: ignore[attr-defined]
+                resp.__dict__["sieve_policy"] = post_policy  # type: ignore[attr-defined]
             except (AttributeError, TypeError):
                 pass
-        if post.is_block():
-            raise PromptInjectionBlocked(post)
+        if post_policy.safe_to_auto_block:
+            raise PromptInjectionBlocked(post, post_policy)
         return resp
 
     client.messages.create = patched

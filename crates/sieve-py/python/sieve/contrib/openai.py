@@ -17,8 +17,10 @@ strings that flow through.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 from sieve import Scanner, PromptInjectionBlocked, instrument_system_prompt
+
+PolicyProfile = Literal["strict", "public_app", "monitor"]
 
 
 def _extract_messages(kwargs: dict[str, Any]) -> tuple[str, str]:
@@ -90,7 +92,16 @@ def _with_instrumented_system(kwargs: dict[str, Any], instrumented_system: str) 
     return patched
 
 
-def wrap(client: Any, scanner: Scanner | None = None) -> Any:
+def _should_block(scanner: Scanner, policy: PolicyProfile, verdict: Any) -> tuple[bool, Any]:
+    decision = scanner.apply_policy(policy, verdict)
+    return decision.safe_to_auto_block, decision
+
+
+def wrap(
+    client: Any,
+    scanner: Scanner | None = None,
+    policy: PolicyProfile = "strict",
+) -> Any:
     """Wrap an OpenAI client. Returns the same client with
     ``chat.completions.create`` monkey-patched in place.
 
@@ -99,6 +110,9 @@ def wrap(client: Any, scanner: Scanner | None = None) -> Any:
             ``client.chat.completions.create(**kwargs)``).
         scanner: Optional pre-built ``sieve.Scanner``. If omitted, a default
             scanner is constructed.
+        policy: Policy profile used for block decisions. Defaults to ``strict``
+            for backwards compatibility. Use ``public_app`` for public-facing
+            chat endpoints.
 
     Returns:
         The same client (mutated). The patched method:
@@ -112,23 +126,27 @@ def wrap(client: Any, scanner: Scanner | None = None) -> Any:
     def patched(**kwargs: Any) -> Any:
         system, user = _extract_messages(kwargs)
         pre = scanner.scan_input(system, user)
-        if pre.is_block():
-            raise PromptInjectionBlocked(pre)
+        blocked, pre_policy = _should_block(scanner, policy, pre)
+        if blocked:
+            raise PromptInjectionBlocked(pre, pre_policy)
         instrumented_system, canary_state = instrument_system_prompt(system)
         resp = original(**_with_instrumented_system(kwargs, instrumented_system))
         text = _response_text(resp)
         post = scanner.scan_output(system, text, canary_state)
+        _, post_policy = _should_block(scanner, policy, post)
         try:
             setattr(resp, "sieve", post)
+            setattr(resp, "sieve_policy", post_policy)
         except (AttributeError, TypeError):
             # Frozen / pydantic models: stash on a mutable attribute the
             # caller can still see.
             try:
                 resp.__dict__["sieve"] = post  # type: ignore[attr-defined]
+                resp.__dict__["sieve_policy"] = post_policy  # type: ignore[attr-defined]
             except (AttributeError, TypeError):
                 pass
-        if post.is_block():
-            raise PromptInjectionBlocked(post)
+        if post_policy.safe_to_auto_block:
+            raise PromptInjectionBlocked(post, post_policy)
         return resp
 
     client.chat.completions.create = patched

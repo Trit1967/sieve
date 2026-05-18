@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockScanInput = vi.fn();
 const mockScanOutput = vi.fn();
 const mockInstrumentSystemPrompt = vi.fn();
+const mockApplyPolicy = vi.fn();
 
 vi.mock("sieve-guard-wasm", () => ({
   default: async () => undefined,
@@ -15,6 +16,7 @@ vi.mock("sieve-guard-wasm", () => ({
     scanInput: mockScanInput,
     instrumentSystemPrompt: mockInstrumentSystemPrompt,
     scanOutput: mockScanOutput,
+    applyPolicy: mockApplyPolicy,
   })),
 }));
 
@@ -30,6 +32,15 @@ beforeEach(() => {
   mockScanInput.mockReset();
   mockScanOutput.mockReset();
   mockInstrumentSystemPrompt.mockReset();
+  mockApplyPolicy.mockReset();
+  mockApplyPolicy.mockImplementation((profile, verdict) => ({
+    profile,
+    decision: verdict.decision,
+    recommended_action: verdict.decision === "Block" ? "Block" : "Allow",
+    confidence: verdict.decision === "Block" ? "High" : "Low",
+    safe_to_auto_block: verdict.decision === "Block",
+    reasons: [],
+  }));
 });
 
 describe("OpenAI wrapper canary plumbing 1000-case regression", () => {
@@ -83,5 +94,6 @@ describe("OpenAI wrapper canary plumbing 1000-case regression", () => {
       { canaries: [token] },
     );
     expect(resp.sieve.decision).toBe("Allow");
+    expect(resp.sieve_policy.safe_to_auto_block).toBe(false);
   });
 });

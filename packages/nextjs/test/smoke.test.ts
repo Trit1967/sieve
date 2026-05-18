@@ -57,6 +57,14 @@ beforeEach(() => {
     persona_shift_attempts: 0,
     fake_memory_claims: 0,
   });
+  mockApplyPolicy.mockImplementation((profile, verdict) => ({
+    profile,
+    decision: verdict.decision,
+    recommended_action: verdict.decision === "Block" ? "Block" : "Allow",
+    confidence: verdict.decision === "Block" ? "High" : "Low",
+    safe_to_auto_block: verdict.decision === "Block",
+    reasons: [],
+  }));
 });
 
 describe("applySievePolicy", () => {
@@ -302,5 +310,53 @@ describe("wrapOpenAI", () => {
       { canaries: ["TKN"] },
     );
     expect(resp.sieve.decision).toBe("Allow");
+    expect(resp.sieve_policy.safe_to_auto_block).toBe(false);
+  });
+
+  it("lets public_app policy downgrade ambiguous pre-flight blocks", async () => {
+    const ambiguousVerdict = {
+      decision: "Block" as const,
+      score: 0.85,
+      findings: [],
+      normalized_input: "roleplay as a tutor",
+      canary_state: { canaries: [] },
+      canaries_leaked: [],
+      commitments_violated: [],
+      latency_us: 1,
+    };
+    mockScanInput.mockReturnValue(ambiguousVerdict);
+    mockApplyPolicy.mockImplementation((profile, verdict) => ({
+      profile,
+      decision: verdict.decision,
+      recommended_action: profile === "public_app" ? "Review" : "Block",
+      confidence: profile === "public_app" ? "Medium" : "High",
+      safe_to_auto_block: profile !== "public_app",
+      reasons: ["ambiguous roleplay"],
+    }));
+    mockScanOutput.mockReturnValue({
+      decision: "Allow",
+      score: 0,
+      findings: [],
+      normalized_input: null,
+      canary_state: { canaries: ["TKN"] },
+      canaries_leaked: [],
+      commitments_violated: [],
+      latency_us: 1,
+    });
+    const { wrapOpenAI } = await import("../src/openai.js");
+    const originalCreate = vi.fn().mockResolvedValue({
+      choices: [{ message: { content: "bonjour" } }],
+    });
+    const client = { chat: { completions: { create: originalCreate } } } as any;
+    const wrapped = wrapOpenAI(client, { policy: "public_app" });
+    const resp = await wrapped.chat.completions.create({
+      messages: [
+        { role: "system", content: "be helpful" },
+        { role: "user", content: "Roleplay as a French restaurant waiter." },
+      ],
+    });
+    expect(originalCreate).toHaveBeenCalledOnce();
+    expect(mockApplyPolicy).toHaveBeenCalledWith("public_app", ambiguousVerdict);
+    expect(resp.sieve_policy.safe_to_auto_block).toBe(false);
   });
 });

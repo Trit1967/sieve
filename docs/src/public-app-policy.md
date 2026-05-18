@@ -60,6 +60,17 @@ if (policy.safe_to_auto_block) {
 }
 ```
 
+Wrapper helpers also accept the same profile:
+
+```python
+client = wrap(OpenAI(), policy="public_app")
+```
+
+```typescript
+const client = wrapOpenAI(new OpenAI(), { policy: "public_app" });
+const model = sieveMiddleware(openai("gpt-4o"), { policy: "public_app" });
+```
+
 ## Profiles
 
 | Profile | Use case | Auto-block behavior |
@@ -71,9 +82,10 @@ if (policy.safe_to_auto_block) {
 ## Scenario Gate
 
 The checked-in `public_app_policy_1000` suite currently runs 1620 generated
-public-app scenarios:
+public-app scenarios plus 101 realistic benign public-app prompts:
 
 - 600 benign public-app prompts: 0 hard-blocked.
+- 101 realistic benign public-app prompts: 0 hard-blocked.
 - 1020 high-confidence attacks: 1012 auto-blocked, 99.2%.
 - Monitor policy: 0 hard-blocks across the same 1620 scenarios.
 

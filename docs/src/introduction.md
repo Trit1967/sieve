@@ -3,40 +3,62 @@
 Vendor-neutral, embeddable, offline-first prompt injection defense.
 
 Strings in. Verdicts out. No network calls. No LLM-vendor lock-in. No
-telemetry. Ever.
+telemetry.
 
 ```rust
-use sieve_core::{Scanner, Decision};
+use sieve_core::{Decision, Scanner};
 
 let scanner = Scanner::default();
-let verdict = scanner.scan_input(&system_prompt, &user_input);
+let verdict = scanner.scan_input(system_prompt, user_input);
 
 if verdict.decision == Decision::Block {
     return Err("prompt injection blocked");
 }
 ```
 
-> **Status: pre-release v0.3.** Suitable for evaluation and integration
-> testing; not yet for unattended production enforcement.
+## Use It As A Library
 
-## Who this is for
+Sieve is not an app server, proxy, database, queue, callback loop, or agent
+framework. It is a set of small scanning APIs that return structured verdicts.
 
-- **Rust LLM-app developers** — first-class native option, no Python sidecar.
-- **Python teams** (FastAPI / Django / LangChain / LlamaIndex / raw scripts).
-- **Next.js teams** — works in both Node and Edge runtimes via WASM.
-- **Privacy-constrained teams** (healthcare / finance / gov) — 100% offline.
-- **Open-source LLM projects** (Ollama / vLLM / llama.cpp wrappers).
+```rust
+let verdict = scanner.scan_input(system_prompt, user_input);
+```
 
-## What you get in v0.3
+```python
+verdict = scanner.scan_input(system_prompt, user_input)
+```
 
-- 8 deterministic detectors: Unicode strip / homoglyph map, curated
-  pattern wordlist, encoding payload scanner, heuristic scorer,
-  canary engine, context analyzer, commitment checks, BYO-ONNX trait.
-- Single-shot `scan_input` / `scan_output` API across Rust, Python, WASM.
-- Cross-language verdict consistency (same input → same JSON).
-- Reproducible benchmarks: 100% detection on the curated jailbreak
-  set, 0% block-FPR on the curated benign set, p99 latency < 20µs.
+```typescript
+const verdict = await sieveCheck(systemPrompt, userInput);
+```
 
-## What you do NOT get
+## Boundaries To Scan
 
-See [What this does NOT catch](./scope.md). Read it before deploying.
+Scan every untrusted boundary before it enters model context:
+
+```typescript
+await sieveCheckTurn(state, messages);
+await sieveCheckToolCall("search", JSON.stringify(args));
+await sieveCheckToolResult("fetch_url", fetchedPage);
+await sieveCheckRetrievedDocument("rag_chunk", chunk, sourceId);
+```
+
+## What You Get In v0.3
+
+- Rust core with Python, WASM, and Next.js bindings.
+- Direct input and output scanning.
+- Canary instrumentation for output leak detection.
+- Structured agent, tool, and RAG boundary scanning.
+- Unicode, encoding, curated-pattern, heuristic, semantic, slot, spotlight,
+  anomaly, and differential detectors.
+- Offline deterministic defaults.
+- Optional BYO classifier and SDK wrappers.
+
+## What You Do Not Get
+
+Sieve is not a formal proof against adaptive attackers, arbitrary paraphrase,
+side channels, or every future agent attack shape.
+
+Read [What this does NOT catch](./scope.md) before using it as a blocking
+control.

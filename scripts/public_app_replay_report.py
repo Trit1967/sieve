@@ -62,6 +62,23 @@ COMMANDS = [
 ]
 
 
+def validate_corpus(corpus: Path | None) -> int:
+    if corpus is None:
+        return 0
+    validator = ROOT / "scripts" / "validate_public_app_replay_corpus.py"
+    proc = subprocess.run(
+        [sys.executable, str(validator), str(corpus)],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    if proc.stdout:
+        print(proc.stdout, file=sys.stderr, end="")
+    return proc.returncode
+
+
 def run_command(command: list[str], corpus: Path | None) -> tuple[int, str]:
     env = os.environ.copy()
     if corpus is not None and "external_corpus_replay" in command:
@@ -142,6 +159,9 @@ def main() -> int:
         corpus = args.corpus if args.corpus.is_absolute() else ROOT / args.corpus
         if not corpus.exists():
             parser.error(f"--corpus path does not exist: {corpus}")
+        validation_code = validate_corpus(corpus)
+        if validation_code != 0:
+            return validation_code
 
     results = []
     for command in COMMANDS:

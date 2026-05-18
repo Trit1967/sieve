@@ -25,15 +25,16 @@ export default nextConfig;
 ```typescript
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { sieveCheck } from "sieve-guard-nextjs";
+import { applySievePolicy, sieveCheck } from "sieve-guard-nextjs";
 
 export const config = { runtime: "edge", matcher: ["/api/chat/:path*"] };
 
 export async function middleware(req: NextRequest) {
   const { message } = await req.clone().json();
   const verdict = await sieveCheck("You are helpful.", message);
-  if (verdict.decision === "Block") {
-    return NextResponse.json({ error: "blocked" }, { status: 400 });
+  const policy = await applySievePolicy("public_app", verdict);
+  if (policy.safe_to_auto_block) {
+    return NextResponse.json({ error: "blocked", policy }, { status: 400 });
   }
   return NextResponse.next();
 }

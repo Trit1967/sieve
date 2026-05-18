@@ -8,16 +8,18 @@ import sieve
 scanner = sieve.Scanner()
 
 pre = scanner.scan_input(system_prompt, user_input)
-if pre.is_block():
+policy = scanner.apply_policy("public_app", pre)
+if policy.safe_to_auto_block:
     raise sieve.PromptInjectionBlocked(pre)
 
 response = your_llm_call()  # Ollama / OpenAI / Anthropic / custom
 
 post = scanner.scan_output(system_prompt, response, pre.canary_state)
-if post.is_block():
+post_policy = scanner.apply_policy("public_app", post)
+if post_policy.safe_to_auto_block:
     raise sieve.PromptInjectionBlocked(post)
 
-print(post.decision, post.findings)
+print(policy.recommended_action, post_policy.recommended_action)
 ```
 
 ## Optional contrib wrappers

@@ -14,6 +14,7 @@
 
 - [What this does NOT catch](./scope.md)
 - [The verdict schema](./verdict.md)
+- [Public app policy](./public-app-policy.md)
 - [Canary tokens](./canary.md)
 - [Commitments](./commitments.md)
 

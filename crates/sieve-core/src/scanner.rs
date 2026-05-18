@@ -43,6 +43,7 @@ use crate::detectors::{
 };
 use crate::error::Result;
 use crate::judge::{LlmJudge, NoopJudge};
+use crate::policy::{apply_policy, PolicyDecision, PolicyProfile};
 use crate::verdict::{CanaryState, Category, Decision, Finding, Severity, Verdict};
 
 /// Threshold above which the aggregated score escalates to `Decision::Flag`.
@@ -327,6 +328,12 @@ impl Scanner {
 
     pub(crate) fn mode(&self) -> ScannerMode {
         self.inner.mode
+    }
+
+    /// Apply an application policy profile to a raw scanner verdict.
+    #[must_use]
+    pub fn apply_policy(&self, profile: PolicyProfile, verdict: &Verdict) -> PolicyDecision {
+        apply_policy(profile, verdict)
     }
 }
 

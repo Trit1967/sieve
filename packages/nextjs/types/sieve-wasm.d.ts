@@ -12,8 +12,6 @@
 // the real wasm-pack-generated types override this stub.
 
 declare module "sieve-guard-wasm" {
-  export default function init(input?: unknown): Promise<unknown>;
-
   export interface Verdict {
     decision: "Allow" | "Flag" | "Block";
     score: number;

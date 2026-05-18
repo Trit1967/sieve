@@ -211,3 +211,37 @@ jobs:
         run: npm install --no-audit --no-fund --legacy-peer-deps
       - name: Pack and import local packages in a clean temp app
         run: node scripts/sample-install-smoke.mjs
+
+  real-app-smoke:
+    name: real app smoke (FastAPI + Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - name: Create Python virtualenv
+        shell: bash
+        run: |
+          python -m venv .venv
+          echo "VIRTUAL_ENV=$(pwd)/.venv" >> "$GITHUB_ENV"
+          echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
+      - name: Install Python app smoke dependencies
+        run: python -m pip install maturin fastapi openai httpx
+      - name: Install Python package in editable mode
+        working-directory: crates/sieve-py
+        run: maturin develop --release
+      - name: Run FastAPI real app smoke
+        run: python scripts/fastapi-real-app-smoke.py
+      - name: Install Next.js package dependencies
+        working-directory: packages/nextjs
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Run Next.js real app smoke
+        run: node scripts/nextjs-real-app-smoke.mjs

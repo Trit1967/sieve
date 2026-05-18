@@ -79,6 +79,19 @@ const model = sieveMiddleware(openai("gpt-4o"), { policy: "public_app" });
 | `public_app` | Public chat, search, support, content tools | Only high-confidence attacks are safe to block |
 | `monitor` | Shadow rollout and telemetry-only trials | Never auto-blocks |
 
+## CLI
+
+The CLI can emit the same policy decision for shell tests and integration
+pipelines:
+
+```sh
+sieve scan --system @system.txt --input user.txt --output json --policy public_app
+```
+
+Without `--policy`, exit codes follow the raw verdict (`0` allow, `1` flag,
+`2` block). With `--policy`, exit codes follow the recommended policy action:
+`0` allow/log, `1` review/step-up, and `2` block/quarantine.
+
 ## Scenario Gate
 
 The checked-in `public_app_policy_1000` suite currently runs 1620 generated

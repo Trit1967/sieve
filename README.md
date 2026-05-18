@@ -211,7 +211,7 @@ callback loop, agent framework, or LLM client.
 
 ```sh
 cargo install sieve-cli
-sieve scan --system @system.txt --input user.txt --output json
+sieve scan --system @system.txt --input user.txt --output json --policy public_app
 ```
 
 ## Current Coverage

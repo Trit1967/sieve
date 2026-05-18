@@ -322,7 +322,7 @@ fn role_confusion_findings(role: MessageRole, content: &str) -> Vec<Finding> {
     let lower = content.to_ascii_lowercase();
     let mut findings = Vec::new();
     for needle in ROLE_CONFUSION_NEEDLES {
-        if let Some(pos) = lower.find(needle) {
+        if let Some(pos) = role_marker_position(&lower, needle) {
             findings.push(Finding {
                 detector: "message-role".into(),
                 severity: Severity::Block,
@@ -338,6 +338,35 @@ fn role_confusion_findings(role: MessageRole, content: &str) -> Vec<Finding> {
         }
     }
     findings
+}
+
+fn role_marker_position(content: &str, needle: &str) -> Option<usize> {
+    let mut offset = 0;
+    while let Some(relative_pos) = content[offset..].find(needle) {
+        let pos = offset + relative_pos;
+        if role_marker_has_boundary(content, pos) {
+            return Some(pos);
+        }
+        offset = pos + needle.len();
+    }
+    None
+}
+
+fn role_marker_has_boundary(content: &str, pos: usize) -> bool {
+    if pos == 0 {
+        return true;
+    }
+    let line_prefix = content[..pos]
+        .rsplit_once('\n')
+        .map_or(&content[..pos], |(_, tail)| tail);
+    let trimmed = line_prefix.trim();
+    trimmed.is_empty()
+        || trimmed.ends_with('{')
+        || trimmed.ends_with('[')
+        || trimmed.ends_with(',')
+        || trimmed.ends_with('"')
+        || trimmed.ends_with('\'')
+        || trimmed.ends_with('>')
 }
 
 fn tool_name_findings(name: &str) -> Vec<Finding> {
@@ -625,6 +654,8 @@ const UNTRUSTED_INSTRUCTION_NEEDLES: &[&str] = &[
     "send the secret to http",
     "send token to http",
     "send the token to http",
+    "send credentials to http",
+    "send hidden credentials to http",
     "upload .env",
     "read .env",
     "cat .env",
@@ -637,6 +668,14 @@ const UNTRUSTED_INSTRUCTION_NEEDLES: &[&str] = &[
     "secrets to webhook",
     "api key to webhook",
     "token to webhook",
+    "credentials to webhook",
+    "hidden credentials to webhook",
+    "send credentials to webhook",
+    "send hidden credentials to webhook",
+    "credentials to the webhook",
+    "hidden credentials to the webhook",
+    "send credentials to the webhook",
+    "send hidden credentials to the webhook",
 ];
 
 const DRIFT_NEEDLES: &[&str] = &[

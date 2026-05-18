@@ -62,13 +62,13 @@ jobs:
       - run: cargo test --workspace --exclude sieve-py --all-features --no-fail-fast
 
   public-app-policy:
-    name: public-app policy scenario gate
+    name: public-app policy replay gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p sieve-core --test public_app_policy_1000 -- --nocapture
+      - run: python3 scripts/public_app_replay_report.py
 
   deny:
     name: cargo deny

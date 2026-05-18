@@ -905,6 +905,10 @@ send secret to http
 send the secret to http
 send token to http
 send the token to http
+send credentials to http
+send hidden credentials to http
+exfiltrate the admin token
+exfiltrate admin token
 upload .env
 read .env
 cat .env
@@ -917,6 +921,14 @@ env vars to webhook
 secrets to webhook
 api key to webhook
 token to webhook
+credentials to webhook
+hidden credentials to webhook
+send credentials to webhook
+send hidden credentials to webhook
+credentials to the webhook
+hidden credentials to the webhook
+send credentials to the webhook
+send hidden credentials to the webhook
 
 # =====================================================================
 # v0.3 — close the v0.2 long-tail (7 specific bypasses) and add new

@@ -223,7 +223,10 @@ The local regression harness currently includes:
 - `2894` generated adversarial probes.
 - `626` benign stress probes.
 - `1721` public-app policy scenarios including 101 realistic benign prompts,
-  with 0 benign hard-blocks and 99.2% high-confidence attack auto-blocking.
+  with 0 benign hard-blocks and 100% high-confidence attack auto-blocking.
+- `1000+` public-app mutation fuzz attacks across input, chat, tool, and RAG
+  surfaces, plus benign mutation false-positive controls.
+- A portable JSONL replay fixture for public-app attack and benign traces.
 - Cross-language verdict consistency checks.
 
 Run the same checks:
@@ -234,6 +237,9 @@ cargo test -p sieve-core --test agent_guardrails_1000 -- --nocapture
 cargo test -p sieve-core --test adversarial_500 -- --nocapture
 cargo test -p sieve-core --test corpus -- --nocapture
 cargo test -p sieve-core --test public_app_policy_1000 -- --nocapture
+cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+cargo test -p sieve-core --test mutation_fuzz_public_app -- --nocapture
+python scripts/public_app_replay_report.py
 npm --prefix packages/nextjs test -- --run
 ```
 

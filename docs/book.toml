@@ -12,5 +12,6 @@ build-dir = "book"
 [output.html]
 default-theme = "light"
 preferred-dark-theme = "navy"
+site-url = "/sieve/"
 git-repository-url = "https://github.com/Trit1967/sieve"
 edit-url-template = "https://github.com/Trit1967/sieve/edit/main/docs/{path}"

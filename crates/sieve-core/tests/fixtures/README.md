@@ -79,3 +79,10 @@ A tiny copyable starter corpus with two attack rows and two benign rows. Replace
 the `source` labels and `text` fields with traces from your own public app, then
 run it with `SIEVE_REPLAY_CORPUS` or `scripts/public_app_replay_report.py
 --corpus`.
+
+Validate corpus shape without running the replay gates:
+
+```sh
+python scripts/validate_public_app_replay_corpus.py \
+  crates/sieve-core/tests/fixtures/public_app_replay_template.jsonl
+```

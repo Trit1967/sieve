@@ -256,6 +256,12 @@ Generate the same Markdown replay report against a custom corpus:
 python scripts/public_app_replay_report.py --corpus /path/to/public-app-corpus.jsonl
 ```
 
+Validate corpus shape without running the replay gates:
+
+```sh
+python scripts/validate_public_app_replay_corpus.py /path/to/public-app-corpus.jsonl
+```
+
 The JSONL row schema and a copyable starter corpus are in:
 
 - `crates/sieve-core/tests/fixtures/public_app_replay.schema.json`

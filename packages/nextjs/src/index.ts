@@ -219,10 +219,12 @@ export async function sieveCheckTurn(
 /** Thrown by SDK wrappers when a verdict's decision is `"Block"`. */
 export class PromptInjectionBlocked extends Error {
   readonly verdict: Verdict;
-  constructor(verdict: Verdict) {
+  readonly policy?: PolicyDecision;
+  constructor(verdict: Verdict, policy?: PolicyDecision) {
     super(`prompt injection blocked: ${verdict.findings.length} finding(s)`);
     this.name = "PromptInjectionBlocked";
     this.verdict = verdict;
+    this.policy = policy;
   }
 }
 

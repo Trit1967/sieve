@@ -9,7 +9,7 @@ Working examples for each supported runtime.
 | Python RAG guardrails | [`python-rag/`](python-rag/) | `scan_retrieved_document()` and `scan_turn()` used directly from Python after `maturin develop`. |
 | Python FastAPI | [`python-fastapi/`](python-fastapi/) | Public-app `scan_input` + `apply_policy("public_app")` integrated into a FastAPI chat endpoint with structured error responses. |
 | Python LangChain | [`python-langchain/`](python-langchain/) | Vendor-neutral primary API (`scan_input` + `scan_output`) used directly inside a LangChain pipeline. No contrib wrapper needed. |
-| Next.js + Vercel AI SDK | [`nextjs-vercel-ai/`](nextjs-vercel-ai/) | `sieveMiddleware()` wrapping `@ai-sdk/openai` inside a Next.js App Router POST handler. |
+| Next.js + Vercel AI SDK | [`nextjs-vercel-ai/`](nextjs-vercel-ai/) | `sieveMiddleware(..., { policy: "public_app" })` wrapping `@ai-sdk/openai` inside a Next.js App Router POST handler. |
 | Next.js Edge runtime | [`nextjs-edge-runtime/`](nextjs-edge-runtime/) | Stateless `sieveCheck()` plus `applySievePolicy("public_app")` from Next.js Edge middleware (`runtime: 'edge'`). |
 | Next.js tool-call boundary | [`nextjs-tool-call/`](nextjs-tool-call/) | `sieve-guard-nextjs` helpers around turn state, tool calls, tool results, and retrieved documents. |
 

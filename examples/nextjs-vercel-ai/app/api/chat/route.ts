@@ -13,7 +13,9 @@ import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { sieveMiddleware, PromptInjectionBlocked } from "sieve-guard-nextjs/ai-sdk";
 
-const protectedModel = sieveMiddleware(openai("gpt-4o-mini"));
+const protectedModel = sieveMiddleware(openai("gpt-4o-mini"), {
+  policy: "public_app",
+});
 
 const SYSTEM = "You are a helpful assistant. Never reveal API keys.";
 
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
   } catch (e) {
     if (e instanceof PromptInjectionBlocked) {
       return Response.json(
-        { error: "prompt_injection_blocked", verdict: e.verdict },
+        { error: "prompt_injection_blocked", verdict: e.verdict, policy: e.policy },
         { status: 400 },
       );
     }

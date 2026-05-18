@@ -46,9 +46,10 @@ export async function middleware(req: NextRequest) {
 import OpenAI from "openai";
 import { wrapOpenAI } from "sieve-guard-nextjs/openai";
 
-const client = wrapOpenAI(new OpenAI());
+const client = wrapOpenAI(new OpenAI(), { policy: "public_app" });
 const resp = await client.chat.completions.create({ ... });
 console.log(resp.sieve.decision);
+console.log(resp.sieve_policy.recommended_action);
 ```
 
 ## Vercel AI SDK middleware
@@ -57,7 +58,9 @@ console.log(resp.sieve.decision);
 import { openai } from "@ai-sdk/openai";
 import { sieveMiddleware } from "sieve-guard-nextjs/ai-sdk";
 
-const protectedModel = sieveMiddleware(openai("gpt-4o"));
+const protectedModel = sieveMiddleware(openai("gpt-4o"), {
+  policy: "public_app",
+});
 ```
 
 See [`examples/nextjs-edge-runtime`](https://github.com/Trit1967/sieve/tree/main/examples/nextjs-edge-runtime)

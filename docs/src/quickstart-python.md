@@ -29,7 +29,7 @@ print(policy.recommended_action, post_policy.recommended_action)
 from openai import OpenAI
 from sieve.contrib.openai import wrap
 
-client = wrap(OpenAI())
+client = wrap(OpenAI(), policy="public_app")
 resp = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
@@ -38,6 +38,7 @@ resp = client.chat.completions.create(
     ],
 )
 print(resp.sieve.decision)
+print(resp.sieve_policy.recommended_action)
 ```
 
 ```python
@@ -45,7 +46,7 @@ print(resp.sieve.decision)
 from anthropic import Anthropic
 from sieve.contrib.anthropic import wrap
 
-client = wrap(Anthropic())
+client = wrap(Anthropic(), policy="public_app")
 resp = client.messages.create(model="claude-3-5-sonnet-latest", ...)
 ```
 

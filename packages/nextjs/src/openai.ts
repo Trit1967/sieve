@@ -11,10 +11,13 @@
 //   console.log(resp.sieve.decision);
 
 import {
+  applySievePolicy,
   sieveCheck,
   sieveCheckOutput,
   instrumentSystemPrompt,
   PromptInjectionBlocked,
+  type PolicyDecision,
+  type PolicyProfile,
   type Verdict,
 } from "./index.js";
 
@@ -41,6 +44,17 @@ interface ChatCompletion {
   [key: string]: unknown;
 }
 
+export interface WrapOpenAIOptions {
+  /**
+   * Policy profile used for block decisions.
+   *
+   * Defaults to `strict` to preserve historical wrapper behavior. Use
+   * `public_app` for public-facing chat endpoints where ambiguous raw blocks
+   * should be reviewed/logged instead of hard-blocked.
+   */
+  policy?: PolicyProfile;
+}
+
 function extractMessages(args: CreateArgs): { system: string; user: string } {
   const messages = args.messages ?? [];
   let system = "";
@@ -55,6 +69,13 @@ function extractMessages(args: CreateArgs): { system: string; user: string } {
     else if (m.role === "user") user = content;
   }
   return { system, user };
+}
+
+async function applyWrapperPolicy(
+  profile: PolicyProfile,
+  verdict: Verdict,
+): Promise<PolicyDecision> {
+  return applySievePolicy(profile, verdict);
 }
 
 function responseText(resp: ChatCompletion): string {
@@ -91,13 +112,15 @@ function withInstrumentedSystem(args: CreateArgs, systemPrompt: string): CreateA
  */
 export function wrapOpenAI<T extends {
   chat: { completions: { create: (...args: any[]) => Promise<any> } };
-}>(client: T): T {
+}>(client: T, options: WrapOpenAIOptions = {}): T {
+  const policyProfile = options.policy ?? "strict";
   const original = client.chat.completions.create.bind(client.chat.completions);
   client.chat.completions.create = async (args: CreateArgs): Promise<any> => {
     const { system, user } = extractMessages(args);
     const pre = await sieveCheck(system, user);
-    if (pre.decision === "Block") {
-      throw new PromptInjectionBlocked(pre);
+    const prePolicy = await applyWrapperPolicy(policyProfile, pre);
+    if (prePolicy.safe_to_auto_block) {
+      throw new PromptInjectionBlocked(pre, prePolicy);
     }
     const instrumented = await instrumentSystemPrompt(system);
     const resp: ChatCompletion = await original(
@@ -105,9 +128,11 @@ export function wrapOpenAI<T extends {
     );
     const text = responseText(resp);
     const post = await sieveCheckOutput(system, text, instrumented.canary_state);
-    (resp as { sieve?: Verdict }).sieve = post;
-    if (post.decision === "Block") {
-      throw new PromptInjectionBlocked(post);
+    const postPolicy = await applyWrapperPolicy(policyProfile, post);
+    (resp as { sieve?: Verdict; sieve_policy?: PolicyDecision }).sieve = post;
+    (resp as { sieve_policy?: PolicyDecision }).sieve_policy = postPolicy;
+    if (postPolicy.safe_to_auto_block) {
+      throw new PromptInjectionBlocked(post, postPolicy);
     }
     return resp;
   };

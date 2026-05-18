@@ -29,11 +29,12 @@ from ._native import (
 class PromptInjectionBlocked(Exception):
     """Raised by contrib wrappers when a verdict's decision is ``Block``."""
 
-    def __init__(self, verdict: Verdict) -> None:
+    def __init__(self, verdict: Verdict, policy: PolicyDecision | None = None) -> None:
         super().__init__(
             f"prompt injection blocked: {len(verdict.findings)} finding(s)"
         )
         self.verdict = verdict
+        self.policy = policy
 
 
 __all__ = [

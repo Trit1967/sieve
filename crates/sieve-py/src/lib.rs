@@ -22,11 +22,13 @@ use pyo3::types::{PyAny, PyDict};
 use pyo3::wrap_pyfunction;
 
 use sieve_core::{
-    inject_system_prompt, CanaryLeak as CoreCanaryLeak, CanaryState as CoreCanaryState,
-    Category as CoreCategory, ChatMessage as CoreChatMessage,
+    apply_policy as core_apply_policy, inject_system_prompt, CanaryLeak as CoreCanaryLeak,
+    CanaryState as CoreCanaryState, Category as CoreCategory, ChatMessage as CoreChatMessage,
     CommitmentViolation as CoreCommitmentViolation, ConversationState as CoreConversationState,
     Decision as CoreDecision, DocumentSourceKind as CoreDocumentSourceKind, Finding as CoreFinding,
-    MessageRole as CoreMessageRole, RetrievedDocument as CoreRetrievedDocument,
+    MessageRole as CoreMessageRole, PolicyConfidence as CorePolicyConfidence,
+    PolicyDecision as CorePolicyDecision, PolicyProfile as CorePolicyProfile,
+    RecommendedAction as CoreRecommendedAction, RetrievedDocument as CoreRetrievedDocument,
     Scanner as CoreScanner, ScannerMode as CoreScannerMode, Severity as CoreSeverity,
     ToolCall as CoreToolCall, ToolResult as CoreToolResult, Verdict as CoreVerdict,
 };
@@ -93,6 +95,30 @@ fn parse_document_source_kind(kind: &str) -> PyResult<CoreDocumentSourceKind> {
         _ => Err(PyValueError::new_err(
             "source_kind must be rag_chunk|web_page|email|pdf|ocr|code_review|issue_comment|tool_output|other",
         )),
+    }
+}
+
+fn parse_policy_profile(profile: &str) -> PyResult<CorePolicyProfile> {
+    CorePolicyProfile::parse(profile)
+        .ok_or_else(|| PyValueError::new_err("profile must be strict|public_app|monitor"))
+}
+
+fn recommended_action_str(action: CoreRecommendedAction) -> &'static str {
+    match action {
+        CoreRecommendedAction::Allow => "Allow",
+        CoreRecommendedAction::Log => "Log",
+        CoreRecommendedAction::Review => "Review",
+        CoreRecommendedAction::StepUp => "StepUp",
+        CoreRecommendedAction::Block => "Block",
+        CoreRecommendedAction::Quarantine => "Quarantine",
+    }
+}
+
+fn policy_confidence_str(confidence: CorePolicyConfidence) -> &'static str {
+    match confidence {
+        CorePolicyConfidence::Low => "Low",
+        CorePolicyConfidence::Medium => "Medium",
+        CorePolicyConfidence::High => "High",
     }
 }
 
@@ -438,6 +464,60 @@ impl Verdict {
     }
 }
 
+// ---- PolicyDecision ----------------------------------------------------
+
+#[pyclass(name = "PolicyDecision", module = "sieve._native", frozen)]
+struct PolicyDecision {
+    inner: CorePolicyDecision,
+}
+
+#[pymethods]
+impl PolicyDecision {
+    #[getter]
+    fn profile(&self) -> &'static str {
+        self.inner.profile.as_str()
+    }
+    #[getter]
+    fn decision(&self) -> &'static str {
+        decision_str(self.inner.decision)
+    }
+    #[getter]
+    fn recommended_action(&self) -> &'static str {
+        recommended_action_str(self.inner.recommended_action)
+    }
+    #[getter]
+    fn confidence(&self) -> &'static str {
+        policy_confidence_str(self.inner.confidence)
+    }
+    #[getter]
+    fn safe_to_auto_block(&self) -> bool {
+        self.inner.safe_to_auto_block
+    }
+    #[getter]
+    fn reasons(&self) -> Vec<String> {
+        self.inner.reasons.clone()
+    }
+    fn to_json(&self) -> PyResult<String> {
+        serde_json::to_string(&self.inner)
+            .map_err(|e| PyRuntimeError::new_err(format!("serialize: {e}")))
+    }
+    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let s = self.to_json()?;
+        let json_mod = py.import("json")?;
+        let obj = json_mod.call_method1("loads", (s,))?;
+        obj.extract()
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "PolicyDecision(profile='{}', action='{}', confidence='{}', safe_to_auto_block={})",
+            self.inner.profile.as_str(),
+            recommended_action_str(self.inner.recommended_action),
+            policy_confidence_str(self.inner.confidence),
+            self.inner.safe_to_auto_block,
+        )
+    }
+}
+
 // ---- Scanner -----------------------------------------------------------
 
 #[pyclass(name = "Scanner", module = "sieve._native")]
@@ -536,6 +616,12 @@ impl Scanner {
         })
     }
 
+    fn apply_policy(&self, profile: &str, verdict: &Verdict) -> PyResult<PolicyDecision> {
+        Ok(PolicyDecision {
+            inner: core_apply_policy(parse_policy_profile(profile)?, &verdict.inner),
+        })
+    }
+
     fn __repr__(&self) -> String {
         "Scanner(default)".into()
     }
@@ -564,6 +650,7 @@ fn _native(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CanaryLeak>()?;
     m.add_class::<CommitmentViolation>()?;
     m.add_class::<ConversationState>()?;
+    m.add_class::<PolicyDecision>()?;
     m.add_function(wrap_pyfunction!(instrument_system_prompt, m)?)?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     Ok(())

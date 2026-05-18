@@ -7,7 +7,7 @@
 //   npm install sieve-guard-wasm sieve-guard-nextjs
 
 import { NextRequest, NextResponse } from "next/server";
-import { sieveCheck } from "sieve-guard-nextjs";
+import { applySievePolicy, sieveCheck } from "sieve-guard-nextjs";
 
 export const config = {
   runtime: "edge",
@@ -23,10 +23,11 @@ export async function middleware(req: NextRequest) {
   const message = body.message ?? "";
 
   const verdict = await sieveCheck(SYSTEM, message);
+  const policy = await applySievePolicy("public_app", verdict);
 
-  if (verdict.decision === "Block") {
+  if (policy.safe_to_auto_block) {
     return NextResponse.json(
-      { error: "prompt_injection_blocked", verdict },
+      { error: "prompt_injection_blocked", verdict, policy },
       { status: 400 },
     );
   }
@@ -36,5 +37,6 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   res.headers.set("x-sieve-decision", verdict.decision);
   res.headers.set("x-sieve-score", String(verdict.score));
+  res.headers.set("x-sieve-action", policy.recommended_action);
   return res;
 }

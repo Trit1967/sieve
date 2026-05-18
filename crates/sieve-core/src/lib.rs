@@ -39,6 +39,7 @@ pub mod context;
 pub mod detectors;
 pub mod error;
 pub mod judge;
+pub mod policy;
 pub mod scanner;
 pub mod streaming;
 pub mod verdict;
@@ -59,6 +60,9 @@ pub use detectors::{
 };
 pub use error::{Error, Result};
 pub use judge::{Judgment, LlmJudge, NoopJudge};
+pub use policy::{
+    apply_policy, PolicyConfidence, PolicyDecision, PolicyProfile, RecommendedAction,
+};
 pub use scanner::{Scanner, ScannerBuilder, ScannerMode};
 pub use streaming::{IncrementalVerdict, StreamingOutputScanner};
 pub use verdict::{

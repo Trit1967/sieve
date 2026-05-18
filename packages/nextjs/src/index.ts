@@ -40,6 +40,25 @@ export interface Verdict {
   latency_us: number;
 }
 
+export type PolicyProfile = "strict" | "public_app" | "monitor";
+export type RecommendedAction =
+  | "Allow"
+  | "Log"
+  | "Review"
+  | "StepUp"
+  | "Block"
+  | "Quarantine";
+export type PolicyConfidence = "Low" | "Medium" | "High";
+
+export interface PolicyDecision {
+  profile: PolicyProfile;
+  decision: Verdict["decision"];
+  recommended_action: RecommendedAction;
+  confidence: PolicyConfidence;
+  safe_to_auto_block: boolean;
+  reasons: string[];
+}
+
 export interface Finding {
   detector: string;
   severity: "Info" | "Warn" | "Block";
@@ -120,6 +139,15 @@ export async function sieveCheck(
 ): Promise<Verdict> {
   const s = await getScanner();
   return s.scanInput(systemPrompt, userInput) as Verdict;
+}
+
+/** Apply an application policy profile to a raw scan verdict. */
+export async function applySievePolicy(
+  profile: PolicyProfile,
+  verdict: Verdict,
+): Promise<PolicyDecision> {
+  const s = await getScanner();
+  return s.applyPolicy(profile, verdict) as PolicyDecision;
 }
 
 /** Convenience: instrument a system prompt with a fresh canary. */

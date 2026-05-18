@@ -20,11 +20,13 @@ use serde_wasm_bindgen::Serializer;
 use wasm_bindgen::prelude::*;
 
 use sieve_core::{
-    inject_system_prompt, CanaryState as CoreCanaryState, ChatMessage as CoreChatMessage,
-    ConversationState as CoreConversationState, DocumentSourceKind as CoreDocumentSourceKind,
-    MessageRole as CoreMessageRole, RetrievedDocument as CoreRetrievedDocument,
-    Scanner as CoreScanner, ScannerMode as CoreScannerMode, ToolCall as CoreToolCall,
-    ToolResult as CoreToolResult,
+    apply_policy as core_apply_policy, inject_system_prompt, CanaryState as CoreCanaryState,
+    ChatMessage as CoreChatMessage, ConversationState as CoreConversationState,
+    DocumentSourceKind as CoreDocumentSourceKind, MessageRole as CoreMessageRole,
+    PolicyDecision as CorePolicyDecision, PolicyProfile as CorePolicyProfile,
+    RetrievedDocument as CoreRetrievedDocument, Scanner as CoreScanner,
+    ScannerMode as CoreScannerMode, ToolCall as CoreToolCall, ToolResult as CoreToolResult,
+    Verdict as CoreVerdict,
 };
 
 #[derive(Deserialize)]
@@ -65,6 +67,11 @@ fn parse_document_source_kind(kind: &str) -> Result<CoreDocumentSourceKind, JsEr
     }
 }
 
+fn parse_policy_profile(profile: &str) -> Result<CorePolicyProfile, JsError> {
+    CorePolicyProfile::parse(profile)
+        .ok_or_else(|| JsError::new("profile must be strict|public_app|monitor"))
+}
+
 fn borrowed_chat_messages(messages: &[JsChatMessage]) -> Result<Vec<CoreChatMessage<'_>>, JsError> {
     messages
         .iter()
@@ -82,6 +89,12 @@ fn serialize_verdict(verdict: &sieve_core::Verdict) -> Result<JsValue, JsError> 
     verdict
         .serialize(&Serializer::json_compatible())
         .map_err(|e| JsError::new(&format!("verdict serialize: {e}")))
+}
+
+fn serialize_policy_decision(policy: &CorePolicyDecision) -> Result<JsValue, JsError> {
+    policy
+        .serialize(&Serializer::json_compatible())
+        .map_err(|e| JsError::new(&format!("policy serialize: {e}")))
 }
 
 /// Scanner handle exposed to JavaScript.
@@ -267,6 +280,24 @@ impl Scanner {
         });
         out.serialize(&Serializer::json_compatible())
             .map_err(|e| JsError::new(&format!("turn serialize: {e}")))
+    }
+
+    /// Apply an application policy profile to a raw verdict.
+    ///
+    /// Use `public_app` for public-facing chat and search inputs where
+    /// ambiguous scanner blocks should be reviewed or logged instead of
+    /// blindly refused.
+    ///
+    /// # Errors
+    /// Returns a `JsError` if the policy profile is invalid, the verdict
+    /// cannot be deserialized, or the policy decision cannot be serialized.
+    #[wasm_bindgen(js_name = applyPolicy)]
+    pub fn apply_policy(&self, profile: &str, verdict: JsValue) -> Result<JsValue, JsError> {
+        let profile = parse_policy_profile(profile)?;
+        let verdict: CoreVerdict = serde_wasm_bindgen::from_value(verdict)
+            .map_err(|e| JsError::new(&format!("verdict: {e}")))?;
+        let policy = core_apply_policy(profile, &verdict);
+        serialize_policy_decision(&policy)
     }
 }
 

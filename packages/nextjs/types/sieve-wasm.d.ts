@@ -39,6 +39,25 @@ declare module "sieve-guard-wasm" {
     latency_us: number;
   }
 
+  export type PolicyProfile = "strict" | "public_app" | "monitor";
+  export type RecommendedAction =
+    | "Allow"
+    | "Log"
+    | "Review"
+    | "StepUp"
+    | "Block"
+    | "Quarantine";
+  export type PolicyConfidence = "Low" | "Medium" | "High";
+
+  export interface PolicyDecision {
+    profile: PolicyProfile;
+    decision: Verdict["decision"];
+    recommended_action: RecommendedAction;
+    confidence: PolicyConfidence;
+    safe_to_auto_block: boolean;
+    reasons: string[];
+  }
+
   export interface InstrumentedPrompt {
     system_prompt: string;
     canary_state: { canaries: string[] };
@@ -95,6 +114,7 @@ declare module "sieve-guard-wasm" {
       sourceId?: string,
     ): Verdict;
     scanTurn(state: ConversationState, messages: ChatMessage[]): TurnScanResult;
+    applyPolicy(profile: PolicyProfile, verdict: Verdict): PolicyDecision;
   }
 
   export function newConversationState(): ConversationState;

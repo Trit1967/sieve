@@ -7,10 +7,10 @@ Working examples for each supported runtime.
 | Rust basic | [`rust-basic/`](rust-basic/) | The minimum: `Scanner::default()` + a benign, an injection, a Unicode bypass, and a canary leak. Runs with `cargo run -p rust-basic`. |
 | Rust agent guardrails | [`rust-agent/`](rust-agent/) | Structured messages, caller-owned `ConversationState`, tool calls, tool results, and retrieved documents. Runs with `cargo run -p rust-agent`. |
 | Python RAG guardrails | [`python-rag/`](python-rag/) | `scan_retrieved_document()` and `scan_turn()` used directly from Python after `maturin develop`. |
-| Python FastAPI | [`python-fastapi/`](python-fastapi/) | `sieve.contrib.openai.wrap()` integrated into a FastAPI chat endpoint with structured error responses. |
+| Python FastAPI | [`python-fastapi/`](python-fastapi/) | Public-app `scan_input` + `apply_policy("public_app")` integrated into a FastAPI chat endpoint with structured error responses. |
 | Python LangChain | [`python-langchain/`](python-langchain/) | Vendor-neutral primary API (`scan_input` + `scan_output`) used directly inside a LangChain pipeline. No contrib wrapper needed. |
 | Next.js + Vercel AI SDK | [`nextjs-vercel-ai/`](nextjs-vercel-ai/) | `sieveMiddleware()` wrapping `@ai-sdk/openai` inside a Next.js App Router POST handler. |
-| Next.js Edge runtime | [`nextjs-edge-runtime/`](nextjs-edge-runtime/) | Stateless `sieveCheck()` from Next.js Edge middleware (`runtime: 'edge'`). Sub-50ms cold start with the WASM bundle. |
+| Next.js Edge runtime | [`nextjs-edge-runtime/`](nextjs-edge-runtime/) | Stateless `sieveCheck()` plus `applySievePolicy("public_app")` from Next.js Edge middleware (`runtime: 'edge'`). |
 | Next.js tool-call boundary | [`nextjs-tool-call/`](nextjs-tool-call/) | `sieve-guard-nextjs` helpers around turn state, tool calls, tool results, and retrieved documents. |
 
 Each example is intentionally short — they're the smallest thing that

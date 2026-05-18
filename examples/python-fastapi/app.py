@@ -7,9 +7,9 @@ Install:
 Run:
     uvicorn app:app --reload
 
-This file is also a working specification of the recommended integration
-shape — guarded LLM call with structured Verdict telemetry exposed to
-the API consumer.
+This file is also a working specification of the recommended public-app
+integration shape: scan, apply policy, block only when the policy says an
+auto-block is safe, then scan model output before returning it.
 """
 
 from __future__ import annotations
@@ -20,13 +20,12 @@ from fastapi import FastAPI, HTTPException
 from openai import OpenAI
 from pydantic import BaseModel
 
-from sieve import Scanner, PromptInjectionBlocked
-from sieve.contrib.openai import wrap
+from sieve import Scanner, instrument_system_prompt
 
 
 app = FastAPI(title="sieve-demo")
 scanner = Scanner()
-client = wrap(OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "")), scanner=scanner)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
 
 SYSTEM_PROMPT = (
     "You are a helpful assistant. Respond in English. "
@@ -40,22 +39,15 @@ class ChatRequest(BaseModel):
 
 @app.post("/chat")
 def chat(req: ChatRequest) -> dict:
-    try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": req.message},
-            ],
-        )
-    except PromptInjectionBlocked as e:
-        # Pre-flight or post-flight block; expose enough detail to debug
-        # without leaking the canary token.
+    pre = scanner.scan_input(SYSTEM_PROMPT, req.message)
+    pre_policy = scanner.apply_policy("public_app", pre)
+    if pre_policy.safe_to_auto_block:
         raise HTTPException(
             status_code=400,
             detail={
                 "error": "prompt_injection_blocked",
-                "decision": e.verdict.decision,
+                "decision": pre.decision,
+                "policy": pre_policy.to_dict(),
                 "findings": [
                     {
                         "detector": f.detector,
@@ -63,16 +55,39 @@ def chat(req: ChatRequest) -> dict:
                         "category": f.category,
                         "score": f.score,
                     }
-                    for f in e.verdict.findings
+                    for f in pre.findings
                 ],
             },
         )
 
+    instrumented_system, canary_state = instrument_system_prompt(SYSTEM_PROMPT)
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": instrumented_system},
+            {"role": "user", "content": req.message},
+        ],
+    )
+    text = resp.choices[0].message.content
+    post = scanner.scan_output(SYSTEM_PROMPT, text, canary_state)
+    post_policy = scanner.apply_policy("public_app", post)
+    if post_policy.safe_to_auto_block:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_injection_blocked",
+                "decision": post.decision,
+                "policy": post_policy.to_dict(),
+            },
+        )
+
     return {
-        "text": resp.choices[0].message.content,
+        "text": text,
         "sieve": {
-            "decision": resp.sieve.decision,
-            "score": resp.sieve.score,
-            "latency_us": resp.sieve.latency_us,
+            "decision": pre.decision,
+            "score": pre.score,
+            "latency_us": pre.latency_us,
+            "policy": pre_policy.to_dict(),
+            "output_policy": post_policy.to_dict(),
         },
     }

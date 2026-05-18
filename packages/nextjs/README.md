@@ -7,6 +7,22 @@ the vendor-neutral prompt injection defense library.
 npm install sieve-guard-wasm sieve-guard-nextjs
 ```
 
+Enable WebAssembly in `next.config.mjs`:
+
+```javascript
+const nextConfig = {
+  webpack(config) {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+    return config;
+  },
+};
+
+export default nextConfig;
+```
+
 ## OpenAI SDK
 
 ```typescript

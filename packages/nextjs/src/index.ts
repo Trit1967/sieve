@@ -12,25 +12,18 @@
 // re-exported `Scanner` / `Verdict` shapes for users who want to drive
 // the scanner themselves.
 
-import * as sieveWasm from "sieve-guard-wasm";
+import {
+  Scanner,
+  newConversationState as wasmNewConversationState,
+} from "sieve-guard-wasm";
 
-let initialized: Promise<void> | null = null;
-type ScannerHandle = InstanceType<typeof sieveWasm.Scanner>;
+type ScannerHandle = InstanceType<typeof Scanner>;
 let scanner: ScannerHandle | null = null;
 
 /** Internal: ensure the wasm module is loaded exactly once. */
 async function getScanner(): Promise<ScannerHandle> {
-  if (!initialized) {
-    initialized = (async () => {
-      const maybeInit = (sieveWasm as { default?: () => Promise<unknown> }).default;
-      if (typeof maybeInit === "function") {
-        await maybeInit();
-      }
-    })();
-  }
-  await initialized;
   if (!scanner) {
-    scanner = new sieveWasm.Scanner();
+    scanner = new Scanner();
   }
   return scanner;
 }
@@ -183,20 +176,7 @@ export async function sieveCheckRetrievedDocument(
 
 /** Create an empty caller-owned conversation state object. */
 export function createConversationState(): ConversationState {
-  const maybeNewState = (sieveWasm as {
-    newConversationState?: () => ConversationState;
-  }).newConversationState;
-  if (typeof maybeNewState === "function") {
-    return maybeNewState();
-  }
-  return {
-    turns_seen: 0,
-    prior_flags: 0,
-    prior_blocks: 0,
-    authority_claims: 0,
-    persona_shift_attempts: 0,
-    fake_memory_claims: 0,
-  };
+  return wasmNewConversationState();
 }
 
 /** Scan one structured conversation turn and return the updated state. */

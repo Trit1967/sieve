@@ -31,7 +31,7 @@ anthropic = ["anthropic>=0.30"]
 test = ["pytest>=7", "respx>=0.21"]
 
 [project.urls]
-Homepage = "https://github.com/Trit1967/sieve"
+Homepage = "https://trit1967.github.io/sieve/"
 Repository = "https://github.com/Trit1967/sieve"
 Issues = "https://github.com/Trit1967/sieve/issues"
 

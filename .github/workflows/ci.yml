@@ -68,6 +68,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Validate replay corpus schema and fixtures
+        run: |
+          python3 -m json.tool crates/sieve-core/tests/fixtures/public_app_replay.schema.json >/dev/null
+          python3 scripts/validate_public_app_replay_corpus.py crates/sieve-core/tests/fixtures/public_app_replay_template.jsonl
+          python3 scripts/validate_public_app_replay_corpus.py crates/sieve-core/tests/fixtures/public_app_external_replay.jsonl
       - run: python3 scripts/public_app_replay_report.py
 
   deny:

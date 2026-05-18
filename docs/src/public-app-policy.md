@@ -111,3 +111,11 @@ attack and benign rows. `mutation_fuzz_public_app` deterministically expands
 high-confidence attacks into 1000+ surface mutations and checks a separate
 benign mutation set for public-app false positives. These tests remain
 fixtures and integration tests; they do not turn sieve into an app.
+
+To replay your own public-app traces, point `SIEVE_REPLAY_CORPUS` at a JSONL
+file using the same schema:
+
+```sh
+SIEVE_REPLAY_CORPUS=/path/to/public-app-corpus.jsonl \
+  cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+```

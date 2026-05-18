@@ -42,6 +42,21 @@ Run:
 cargo test -p sieve-core --test external_corpus_replay -- --nocapture
 ```
 
+Replay a local corpus with the same schema:
+
+```sh
+SIEVE_REPLAY_CORPUS=/path/to/public-app-corpus.jsonl \
+  cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+```
+
+On PowerShell:
+
+```powershell
+$env:SIEVE_REPLAY_CORPUS = "C:\path\to\public-app-corpus.jsonl"
+cargo test -p sieve-core --test external_corpus_replay -- --nocapture
+Remove-Item Env:\SIEVE_REPLAY_CORPUS
+```
+
 The fixture is intentionally compact so downstream users can copy the schema
 and add their own application-specific traces without pulling in an app server
 or a hosted evaluation service.
